@@ -1,0 +1,58 @@
+@mixin transform($args...) {
+  transform: $args;
+  -webkit-transform: $args;
+  -moz-transform: $args;
+  -ms-transform: $args;
+  -o-transform: $args;
+}
+
+@mixin radius($args...) {
+  border-radius: $args;
+  -webkit-border-radius: $args;
+  -moz-border-radius: $args;
+  -ms-border-radius: $args;
+  -o-border-radius: $args;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+}
+
+#inputs {
+  position: fixed;
+  width: 70%;
+  flex-wrap: wrap;
+  bottom: 1rem;
+  left: 50%;
+  display: flex;
+  justify-content: center;
+
+  button {
+    $radius: 0.3rem;
+    cursor: pointer;
+    &:first-child {
+      @include radius(#{$radius} 0 0 #{$radius});
+    }
+    &:last-child {
+      @include radius(0 #{$radius} #{$radius} 0);
+    }
+    &:hover {
+      box-shadow: inset 0 0 9999999999999px 0 #00000026;
+    }
+    &:active {
+      box-shadow: inset 0 0 9999999999999px 0 #00000056;
+    }
+    outline: none;
+    border: none;
+    background-color: #a6a6a6;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    padding: 0.5rem 0.7rem;
+  }
+
+  @include transform(translateX(-50%));
+}

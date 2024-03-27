@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1711517986588" clover="3.2.0">
+  <project timestamp="1711517986588" name="All files">
+    <metrics statements="107" coveredstatements="61" conditionals="8" coveredconditionals="3" methods="30" coveredmethods="15" elements="145" coveredelements="79" complexity="0" loc="107" ncloc="107" packages="3" files="3" classes="3"/>
+    <package name="core">
+      <metrics statements="84" coveredstatements="45" conditionals="6" coveredconditionals="2" methods="19" coveredmethods="12"/>
+      <file name="sudoku.ts" path="C:\kimson\Kim_Coding\project\sudoku\src\core\sudoku.ts">
+        <metrics statements="84" coveredstatements="45" conditionals="6" coveredconditionals="2" methods="19" coveredmethods="12"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="35" count="18" type="stmt"/>
+        <line num="36" count="18" type="stmt"/>
+        <line num="37" count="18" type="cond" truecount="1" falsecount="0"/>
+        <line num="38" count="13" type="stmt"/>
+        <line num="42" count="162" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="76" count="10" type="stmt"/>
+        <line num="77" count="10" type="stmt"/>
+        <line num="78" count="10" type="stmt"/>
+        <line num="79" count="10" type="stmt"/>
+        <line num="80" count="90" type="stmt"/>
+        <line num="81" count="90" type="stmt"/>
+        <line num="82" count="810" type="stmt"/>
+        <line num="87" count="810" type="stmt"/>
+        <line num="89" count="90" type="stmt"/>
+        <line num="91" count="10" type="stmt"/>
+        <line num="96" count="10" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="114" count="6" type="stmt"/>
+        <line num="115" count="6" type="stmt"/>
+        <line num="116" count="6" type="stmt"/>
+        <line num="120" count="6" type="stmt"/>
+        <line num="121" count="6" type="stmt"/>
+        <line num="124" count="1" type="stmt"/>
+        <line num="125" count="1" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="137" count="1" type="stmt"/>
+        <line num="138" count="1" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="144" count="1" type="stmt"/>
+        <line num="145" count="1" type="stmt"/>
+        <line num="146" count="9" type="stmt"/>
+        <line num="147" count="9" type="cond" truecount="1" falsecount="0"/>
+        <line num="148" count="9" type="stmt"/>
+        <line num="151" count="1" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="155" count="0" type="stmt"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="157" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="161" count="0" type="stmt"/>
+        <line num="162" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="174" count="1" type="stmt"/>
+        <line num="175" count="9" type="stmt"/>
+        <line num="177" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="modules">
+      <metrics statements="20" coveredstatements="13" conditionals="2" coveredconditionals="1" methods="11" coveredmethods="3"/>
+      <file name="cell.ts" path="C:\kimson\Kim_Coding\project\sudoku\src\modules\cell.ts">
+        <metrics statements="20" coveredstatements="13" conditionals="2" coveredconditionals="1" methods="11" coveredmethods="3"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="11" count="810" type="stmt"/>
+        <line num="14" count="810" type="stmt"/>
+        <line num="15" count="810" type="stmt"/>
+        <line num="16" count="810" type="stmt"/>
+        <line num="17" count="810" type="stmt"/>
+        <line num="18" count="810" type="cond" truecount="1" falsecount="1"/>
+        <line num="19" count="810" type="stmt"/>
+        <line num="20" count="810" type="stmt"/>
+        <line num="24" count="810" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="types">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="sudoku.type.ts" path="C:\kimson\Kim_Coding\project\sudoku\src\types\sudoku.type.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
