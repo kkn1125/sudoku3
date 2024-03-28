@@ -158,21 +158,24 @@ export default class Renderer {
       }
 
       this.ctx.font = "bold 8px san-serif";
-      const sliced = this.splitBy(memos, 3);
+      // const sliced = this.splitBy(memos, 3);
       if (isSame) {
         this.ctx.fillStyle = Palette.DefaultText;
       }
-      sliced.forEach((slice, height) => {
-        const slicedText = slice.join("　");
-        const { actualBoundingBoxAscent } = this.ctx.measureText(slicedText);
+      const max = Math.max(innerWidth, innerHeight);
+      const min = Math.min(innerWidth, innerHeight);
+      const ratio = max / min;
+      const pad = this.size * 0.1 * ratio;
+      memos.forEach((memo, index) => {
+        // const slicedText = slice.join("　");
+        const { actualBoundingBoxAscent } = this.ctx.measureText("" + memo);
         this.ctx.fillText(
-          slicedText,
-          pox + this.size / 2,
+          "" + memo,
+          pox + pad * (index % 3) + (this.size / 2 - pad),
           poy +
-            this.size / 2 +
-            actualBoundingBoxAscent * height * 2 -
-            this.size / 2 +
-            actualBoundingBoxAscent * 2.5
+            (10 / actualBoundingBoxAscent) * ratio * Math.floor(index / 3) +
+            pad * Math.floor(index / 3) +
+            (this.size / 2 - pad)
         );
       });
     } else {
