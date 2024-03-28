@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "test": "jest --coverage",
+    "prebuild": "rm -rf dist/",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "deploy": "rm -rf dist/ && cd dist && git init && git add -A && git commit -m \"gh-pages\" && git push https://github.com/kkn1125/sudoku3.git master:gh-pages -f"
+    "deploy": " cd dist && git init && git add -A && git commit -m \"gh-pages\" && git push https://github.com/kkn1125/sudoku3.git master:gh-pages -f"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
