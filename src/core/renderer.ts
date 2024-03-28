@@ -52,10 +52,11 @@ export default class Renderer {
   }
 
   getGlobalSize() {
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-    const boardX = (this.parent.boards[0].length * this.size) / 2;
-    const boardY = (this.parent.boards.length * this.size) / 2;
+    const centerX = this.canvas.width * 0.5;
+    const centerY = this.canvas.height * this.parent.offsetTop;
+    const boardX = this.parent.boards[0].length * this.size * 0.5;
+    const boardY =
+      this.parent.boards.length * this.size * this.parent.offsetTop;
     return {
       centerX,
       centerY,
@@ -87,16 +88,16 @@ export default class Renderer {
       this.size = 46;
       this.inputPlace = "right";
     } else if (this.minAndMax(568, 768)) {
-      this.size = 40;
+      this.size = 42;
       this.inputPlace = "right";
     } else if (this.minAndMax(368, 568)) {
-      this.size = 28;
+      this.size = 34;
       this.inputPlace = "right";
     } else if (this.maxOr(368)) {
-      this.size = 26;
+      this.size = 30;
       this.inputPlace = "right";
     } else {
-      this.size = 50;
+      this.size = 56;
       this.inputPlace = "right";
     }
   }

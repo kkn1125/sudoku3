@@ -37,10 +37,11 @@ export default class InputManager {
   }
 
   getPos(e: MouseEvent) {
-    const canvasX = this.parent.renderer.canvas.width / 2;
-    const canvasY = this.parent.renderer.canvas.height / 2;
-    const boardX = (this.parent.sizes.x * this.parent.renderer.size) / 2;
-    const boardY = (this.parent.sizes.y * this.parent.renderer.size) / 2;
+    const canvasX = this.parent.renderer.canvas.width * 0.5;
+    const canvasY = this.parent.renderer.canvas.height * this.parent.offsetTop;
+    const boardX = this.parent.sizes.x * this.parent.renderer.size * 0.5;
+    const boardY =
+      this.parent.sizes.y * this.parent.renderer.size * this.parent.offsetTop;
     const pox = Math.floor(
       (e.clientX - canvasX + boardX) / this.parent.renderer.size
     );

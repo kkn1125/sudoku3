@@ -17,6 +17,7 @@ const GameState = {
 type GameState = (typeof GameState)[keyof typeof GameState];
 
 export default class Sudoku {
+  offsetTop: number = 0.25;
   /* cell storages */
   selected: Cell | null = null;
   wrongCell: Cell | null = null;
