@@ -62,13 +62,13 @@ export default class Sudoku {
         break;
       }
     }
-    console.log(
-      "isAllSuccess",
-      isAllSuccess,
-      inputs,
-      inputs.every((i) => i.current === 0),
-      inputs.map((i) => i.current)
-    );
+    // console.log(
+    //   "isAllSuccess",
+    //   isAllSuccess,
+    //   inputs,
+    //   inputs.every((i) => i.current === 0),
+    //   inputs.map((i) => i.current)
+    // );
     return isAllSuccess;
   }
 
