@@ -1,45 +1,39 @@
 import Cell from "../modules/cell";
-import CellInput from "../modules/cell.Input";
-import { CellState } from "../types/sudoku.type";
 import Sudoku from "./sudoku";
 
 export default class InputManager {
   parent: Sudoku;
-  inputs: CellInput[] = [];
+  memoCell: Cell;
+  inputs: Cell[] = [];
   resetQueue: Cell[] = [];
+  memoMode: boolean = false;
 
   constructor(sudoku: Sudoku) {
     this.parent = sudoku;
+    this.memoCell = new Cell(10, -1, -1);
+    this.memoCell.typeMemo();
 
-    for (let i = 0; i <= this.parent.sizes.y; i++) {
-      const cell = new CellInput(10, i, i);
+    const removeCell = new Cell(10, 0, 0);
+    removeCell.typeInput();
+
+    this.inputs.push(removeCell);
+
+    for (let i = 0; i < this.parent.sizes.y; i++) {
+      const cell = new Cell(10, i, i + 1);
       cell.stateFixed();
       cell.typeInput();
+
       this.inputs.push(cell);
     }
 
     window.addEventListener("keydown", this.handleKeydown.bind(this));
     window.addEventListener("mousemove", this.handlePointer.bind(this));
     window.addEventListener("click", this.handleClick.bind(this));
-    // window.addEventListener("change", this.handleInput.bind(this));
   }
 
   clearCount() {
-    const clear = (input: CellInput) => input.clear();
+    const clear = (input: Cell) => input.clear();
     this.inputs.forEach(clear);
-  }
-
-  countCurrentAmountEachCells() {
-    /* 인풋 버튼 현재 갯수 0으로 초기화 */
-    this.clearCount();
-
-    /* 인풋 버튼 현재 갯수 카운팅 */
-    const cells = this.parent.boards.flat(1);
-    for (const cell of cells) {
-      if (cell.guessValue !== 0) {
-        this.inputs[cell.guessValue - 1].count();
-      }
-    }
   }
 
   getPos(e: MouseEvent) {
@@ -56,18 +50,71 @@ export default class InputManager {
     return { x: pox, y: poy };
   }
 
+  toggleMemoMode() {
+    this.memoMode = !this.memoMode;
+  }
+
+  calculateAndRerenderInputs() {
+    this.parent.calculateEachValueAmount();
+    this.parent.renderer.renderInputs();
+  }
+
   /* handlers */
   handleKeydown(e: KeyboardEvent) {
     const key = e.key.toLowerCase();
+
+    if (this.parent.isGameClear() || this.parent.isGameFail()) {
+      return;
+    }
+
     if (this.parent.selected) {
       if (key === "backspace") {
-        this.parent.selected.guessValue = 0;
+        if (this.memoMode) {
+          this.parent.selected.removeGuessValue();
+          this.parent.selected.removeAllMemo();
+        } else {
+          this.parent.selected.removeGuessValue();
+          this.parent.selected.removeAllMemo();
+        }
+        this.calculateAndRerenderInputs();
       } else if (key.match(/^[1-9]$/)) {
-        this.parent.selected.guessValue = +key;
+        if (this.memoMode) {
+          // memo mode!
+          const cell = this.inputs.find((input) => input.guessValue === +key);
+          if (cell?.current !== 0) {
+            this.parent.selected.addMemo(+key);
+            this.parent.selected.removeGuessValue();
+            this.calculateAndRerenderInputs();
+            // console.log("key down cell", cell);
+          }
+        } else {
+          // not memo mode!
+          const cell = this.inputs.find((input) => input.guessValue === +key);
+          if (cell?.current !== 0) {
+            this.parent.selected.replaceGuessValue(+key);
+            this.parent.selected.removeAllMemo();
+            this.calculateAndRerenderInputs();
+            // console.log("key down cell", cell);
+          }
+        }
+      } else if (key.match(/^0$/)) {
+        if (this.memoMode) {
+          // memo mode!
+          this.parent.selected.removeGuessValue();
+          this.parent.selected.removeAllMemo();
+          this.calculateAndRerenderInputs();
+          // const cell = this.inputs.find((input) => input.guessValue === +key);
+          // console.log("key down cell", cell);
+        } else {
+          // not memo mode!
+          this.parent.selected.removeGuessValue();
+          this.parent.selected.removeAllMemo();
+          this.calculateAndRerenderInputs();
+          // const cell = this.inputs.find((input) => input.guessValue === +key);
+          // console.log("key down cell", cell);
+        }
       }
       this.validateGuessValue(this.parent.selected);
-
-      // this.parent.clearGuessPassed();
     }
     this.parent.selected = null;
   }
@@ -77,13 +124,13 @@ export default class InputManager {
     this.parent.renderer.pointer = pos;
   }
 
-  // handleInput(e: Event) {
-  //   const target = e.target;
-  // }
-
   handleClick(e: MouseEvent) {
     const pos = this.getPos(e);
     const target = e.target as HTMLButtonElement;
+
+    if (this.parent.isGameClear() || this.parent.isGameFail()) {
+      return;
+    }
 
     if (
       target.tagName !== "button" &&
@@ -92,28 +139,66 @@ export default class InputManager {
       0 <= pos.y &&
       pos.y < this.parent.sizes.y
     ) {
+      // 스도쿠 보드 내 클릭 시
       const cell = this.parent.selectOne(pos.x, pos.y);
       this.parent.selected = cell ?? null;
     } else {
+      // console.log("here");
+      // 스도쿠 보드 밖 입력 패널 클릭 시
       const target = e.target as HTMLButtonElement;
-      if (!target) return;
-      const cell = this.inputs[+(target.dataset.value || 0)];
-      if (
-        this.parent.selected &&
-        this.parent.selected.state === CellState.Guessed
-      ) {
-        this.parent.selected.guessValue = cell.originValue;
-        this.validateGuessValue(this.parent.selected);
+      // 없으면 종료
+      if (!target) {
+        return;
       }
-      this.parent.selected = null;
 
-      // this.parent.clearGuessPassed();
+      /* memo mode */
+      if (target.dataset.value === "-1") {
+        this.toggleMemoMode();
+        this.parent.renderer.renderInputs();
+      } else {
+        // 입력 패널 셀 찾기
+        if (this.parent.selected && this.parent.selected.isStateGuessed()) {
+          const index = Number(target.dataset.value);
+          if (!Number.isNaN(index) && index > 0) {
+            if (this.memoMode) {
+              // memo mode!
+              const cell = this.inputs[index];
+              if (cell.originValue === 0) {
+                this.parent.selected.removeAllMemo();
+              } else {
+                this.parent.selected.addMemo(cell.originValue);
+              }
+              this.parent.selected.removeGuessValue();
+              this.calculateAndRerenderInputs();
+            } else {
+              // not memo mode!
+              const cell = this.inputs[index];
+              if (cell.originValue === 0) {
+                this.parent.selected.removeGuessValue();
+              } else {
+                this.parent.selected.replaceGuessValue(cell.originValue);
+                this.calculateAndRerenderInputs();
+              }
+              this.parent.selected.removeAllMemo();
+            }
+            this.validateGuessValue(this.parent.selected);
+          } else {
+            this.parent.selected.removeGuessValue();
+            this.parent.selected.removeAllMemo();
+            this.calculateAndRerenderInputs();
+            this.validateGuessValue(this.parent.selected);
+          }
+        }
+      }
+      if (!this.memoMode || !("value" in target.dataset)) {
+        this.parent.selected = null;
+      }
     }
   }
 
   clearWrongCell() {
-    if (this.parent.renderer.wrongCell !== null) {
-      this.parent.renderer.wrongCell = null;
+    if (this.parent.wrongCell !== null) {
+      this.parent.wrongCell = null;
       this.parent.boards.flat(1).forEach((cell) => {
         cell.isSuccess = false;
       });
@@ -124,42 +209,56 @@ export default class InputManager {
     this.clearWrongCell();
     const { isCorrect, row, isRowFill, column, isColumnFill, box, isBoxFill } =
       this.parent.guessByCell(cell);
-    console.log("isCorrect", isCorrect);
-    console.log(this.parent.renderer.wrongCell);
     if (isCorrect) {
+      /* 열, 행, 영역 맞으면 */
+      // 해당 셀 guess pass 처리
       cell.guessValuePassed();
+      for (const queue of this.resetQueue) {
+        queue.isSuccess = false;
+      }
+      while (this.parent.renderer.timeoutQueue.length > 0) {
+        const item = this.parent.renderer.timeoutQueue.shift();
+        if (item) {
+          const [timeout, cb] = item;
+          clearTimeout(timeout);
+          cb();
+        }
+      }
+
       if (isRowFill) {
+        // 행이 통과되면 해당 영역 셀 완료 표시
         row.forEach((c) => {
           c.success();
           this.resetQueue.push(c);
         });
       }
       if (isColumnFill) {
+        // 열이 통과되면 해당 영역 셀 완료 표시
         column.forEach((c) => {
           c.success();
           this.resetQueue.push(c);
         });
       }
       if (isBoxFill) {
+        // 영역이 통과되면 해당 영역 셀 완료 표시
         box.forEach((c) => {
           c.success();
           this.resetQueue.push(c);
         });
       }
-      // if (!(isRowFill && isColumnFill && isBoxFill)) {
-      //   ([] as Cell[])
-      //     .concat(...row)
-      //     .concat(...column)
-      //     .concat(...box)
-      //     .forEach((c) => {
-      //       c.isSuccess = false;
-      //     });
-      // }
     } else {
-      cell.guessValueNotPassed();
-      console.warn("[not correct]");
-      this.parent.tryFailCount();
-      this.parent.renderer.wrongCell = cell;
+      /* 다른 영역과 충돌된다면 */
+      // 입력 셀 not guess pass 처리
+      if (!this.memoMode) {
+        console.warn("[not correct]");
+        cell.guessValueNotPassed();
+        // 엔진에 실패 횟수 카운트
+        this.parent.tryFailCount();
+        // 틀린 셀 저장
+        this.parent.wrongCell = cell;
+      }
     }
+
+    this.parent.checkGameClear();
   }
 }

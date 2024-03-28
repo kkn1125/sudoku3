@@ -6,4 +6,4 @@ sudoku.setLevel(0);
 
 sudoku.run();
 
-console.log("sudoku state:", sudoku.state);
+// console.log("sudoku state:", sudoku.state);

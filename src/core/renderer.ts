@@ -1,6 +1,24 @@
 import Cell from "../modules/cell";
-import { CellState, Palette } from "../types/sudoku.type";
+import { grade } from "../utils/global";
 import Sudoku from "./sudoku";
+
+const Palette = {
+  White: "#ffffff",
+  Default: "#565656",
+  DefaultText: "#565656",
+  DefaultBorder: "#56565656",
+  BoxBorder: "#acacac",
+  Selected: "#a625c576",
+  Success: "#248d2e16",
+  SameGuessValue: "#a625c536",
+  Pointer: "#a625c556",
+  Correct: "#248d2e",
+  Danger: "#bb3636",
+  DangerPointHighlight: "#bb363676",
+  DangerHighlight: "#bb363636",
+  LineHighlight: "#a625c516",
+} as const;
+type Palette = (typeof Palette)[keyof typeof Palette];
 
 export default class Renderer {
   parent: Sudoku;
@@ -9,9 +27,13 @@ export default class Renderer {
   size: number = 50;
   pointer: { x: number; y: number } = { x: -1, y: -1 };
   selected: { x: number; y: number } = { x: -1, y: -1 };
-  wrongCell: Cell | null = null;
+  beforeTime: number = 0;
 
   inputPlace: "right" | "bottom" = "right";
+
+  timeoutQueue: [number, Function][] = [];
+
+  active: number = 0;
 
   constructor(sudoku: Sudoku) {
     const CANVAS = document.querySelector("#app") as HTMLCanvasElement;
@@ -20,9 +42,13 @@ export default class Renderer {
     this.canvas = CANVAS;
     this.ctx = ctx;
 
-    this.renderInputs();
-
     this.execListener();
+  }
+
+  destroy() {
+    this.pointer = { x: -1, y: -1 };
+    this.selected = { x: -1, y: -1 };
+    cancelAnimationFrame(this.active);
   }
 
   getGlobalSize() {
@@ -75,55 +101,14 @@ export default class Renderer {
     }
   }
 
-  renderCanvas(time: number) {
-    requestAnimationFrame(this.renderCanvas.bind(this));
-
-    time = time * 0.001;
-
-    if (this.parent.inputManager.resetQueue.length > 0) {
-      const cellReset = this.parent.inputManager.resetQueue.shift();
-      if (cellReset) {
-        setTimeout(() => {
-          cellReset.isSuccess = false;
-        }, 3 * 1000);
-      }
-    }
-
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    for (const cell of this.parent.boards.flat(1)) {
-      this.drawCell(cell, time);
-    }
-
-    if (
-      0 <= this.pointer.x &&
-      this.pointer.x < this.parent.sizes.x &&
-      0 <= this.pointer.y &&
-      this.pointer.y < this.parent.sizes.y
-    ) {
-      this.drawGuideline(this.pointer, Palette.LineHighlight);
-    }
-
-    if (this.wrongCell) {
-      const { x, y } = this.wrongCell;
-      this.drawGuideline({ x, y }, Palette.DangerHighlight);
-    }
-
-    // this.drawCellInputs();
-
-    this.drawBoxBorder();
-
-    this.drawTryInformation();
-  }
-
-  drawCell(cell: Cell, time: number) {
+  drawCell(cell: Cell) {
     const { centerX, centerY, boardX, boardY } = this.getGlobalSize();
-    const { x, y, originValue, guessValue, /* memo, */ state } = cell;
+    const { x, y } = cell;
     const pox = x * this.size + centerX - boardX;
     const poy = y * this.size + centerY - boardY;
 
-    const value =
-      "" + ((state === CellState.Fixed ? originValue : guessValue) || "");
+    const value = cell.readGuessValue();
+    const memos = cell.readMemo();
 
     this.ctx.fillStyle = Palette.White;
 
@@ -131,7 +116,7 @@ export default class Renderer {
       this.ctx.fillStyle = Palette.Success;
     }
 
-    /* selected cell highlight */
+    /* 선택 셀 강조 */
     if (
       this.parent.selected?.x === cell.x &&
       this.parent.selected?.y === cell.y
@@ -139,18 +124,19 @@ export default class Renderer {
       this.ctx.fillStyle = Palette.Selected;
     }
 
-    if (
-      this.parent.selected?.guessValue === cell.guessValue &&
-      cell.guessValue !== 0
-    ) {
+    /* 선택 셀과 동일한 값 강조 (메모도 포함) */
+    const isSame =
+      this.parent.selected &&
+      this.parent.selected.guessValue === cell.guessValue &&
+      cell.guessValue !== 0;
+    if (isSame) {
       this.ctx.fillStyle = Palette.SameGuessValue;
     }
 
     this.ctx.fillRect(pox, poy, this.size, this.size);
 
-    this.ctx.font = "bold 16px san-serif";
     this.ctx.textAlign = "center";
-    if (state === CellState.Fixed) {
+    if (cell.isStateFixed()) {
       this.ctx.fillStyle = Palette.Default;
     } else {
       if (cell.isGuessPassed) {
@@ -161,29 +147,91 @@ export default class Renderer {
     }
     this.ctx.strokeStyle = Palette.DefaultBorder;
 
-    const { actualBoundingBoxAscent } = this.ctx.measureText(value);
-
     this.ctx.strokeRect(pox, poy, this.size, this.size);
-    this.ctx.fillText(
-      value,
-      pox + this.size / 2,
-      poy + this.size / 2 + actualBoundingBoxAscent / 2
-    );
+    if (memos.length > 0) {
+      const isSame =
+        this.parent.selected && cell.hasMemoBy(this.parent.selected.guessValue);
+      if (isSame) {
+        this.ctx.fillStyle = Palette.SameGuessValue;
+        this.ctx.fillRect(pox, poy, this.size, this.size);
+        this.ctx.strokeRect(pox, poy, this.size, this.size);
+      }
+
+      this.ctx.font = "bold 8px san-serif";
+      const sliced = this.splitBy(memos, 3);
+      if (isSame) {
+        this.ctx.fillStyle = Palette.DefaultText;
+      }
+      sliced.forEach((slice, height) => {
+        const slicedText = slice.join("　");
+        const { actualBoundingBoxAscent } = this.ctx.measureText(slicedText);
+        this.ctx.fillText(
+          slicedText,
+          pox + this.size / 2,
+          poy +
+            this.size / 2 +
+            actualBoundingBoxAscent * height * 2 -
+            this.size / 2 +
+            actualBoundingBoxAscent * 2.5
+        );
+      });
+    } else {
+      this.ctx.font = "bold 16px san-serif";
+      const { actualBoundingBoxAscent } = this.ctx.measureText(value);
+      this.ctx.fillText(
+        value,
+        pox + this.size / 2,
+        poy + this.size / 2 + actualBoundingBoxAscent / 2
+      );
+    }
+  }
+
+  splitBy(array: number[], value: number) {
+    const temp = [];
+    for (let i = 1; i <= value; i++) {
+      const sliced = array.slice((i - 1) * value, i * value);
+      temp.push(sliced);
+    }
+    return temp;
   }
 
   renderInputs() {
     const body = document.body;
-    const inputs = document.createElement("div");
-    inputs.id = "inputs";
+    const inputs = document.querySelector("#inputs") as HTMLDivElement;
+    inputs.innerHTML = "";
+
+    const memoEl = this.convertButtonEl(this.parent.inputManager.memoCell);
+    if (this.parent.inputManager.memoMode) {
+      memoEl.classList.add("memomode");
+    } else {
+      memoEl.classList.remove("memomode");
+    }
+    inputs.append(memoEl);
+
     for (const cellInput of this.parent.inputManager.inputs) {
-      const value =
-        "" + (cellInput.guessValue === 0 ? "X" : cellInput.guessValue);
-      const cell = document.createElement("button");
-      cell.innerText = value;
-      cell.dataset.value = "" + cellInput.guessValue;
+      const cell = this.convertButtonEl(cellInput);
       inputs.append(cell);
     }
     body.append(inputs);
+  }
+
+  convertButtonEl(cellInput: Cell) {
+    const value = cellInput.readButtonValue();
+    const cell = document.createElement("button");
+    if (
+      !this.parent.inputManager.memoMode &&
+      cellInput.isTypeBoard() &&
+      cellInput.current === 0
+    ) {
+      cell.disabled = true;
+    }
+    cell.innerText = value;
+    if (cellInput.isTypeInput()) {
+      cell.dataset.value = "" + cellInput.originValue;
+    } else if (cellInput.isTypeMemo()) {
+      cell.dataset.value = "memo";
+    }
+    return cell;
   }
 
   drawCellInputs() {
@@ -299,13 +347,62 @@ export default class Renderer {
 
     this.ctx.fillStyle = Palette.DefaultText;
     this.ctx.fillText(
-      "Fail to guess: " + this.parent.tryAmount + " / " + this.parent.tryLimit,
+      `Lv.${this.parent.level} [ ${
+        grade[this.parent.level as 1 | 2 | 3 | 4 | 5]
+      } ] (${this.parent.tryAmount} / ${this.parent.tryLimit})`,
       borderX(1.5),
       borderY(-0.2)
     );
   }
 
+  renderCanvas(time: number) {
+    this.active = requestAnimationFrame(this.renderCanvas.bind(this));
+
+    time = Math.floor(time * 0.001);
+
+    if (time !== this.beforeTime) {
+      // if you want
+    }
+
+    if (this.parent.inputManager.resetQueue.length > 0) {
+      const cellReset = this.parent.inputManager.resetQueue.shift();
+      if (cellReset) {
+        const cb = () => {
+          cellReset.isSuccess = false;
+        };
+        const timeout = setTimeout(cb, 3 * 1000);
+        this.timeoutQueue.push([timeout, cb]);
+      }
+    }
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    for (const cell of this.parent.boards.flat(1)) {
+      this.drawCell(cell);
+    }
+
+    if (
+      0 <= this.pointer.x &&
+      this.pointer.x < this.parent.sizes.x &&
+      0 <= this.pointer.y &&
+      this.pointer.y < this.parent.sizes.y
+    ) {
+      this.drawGuideline(this.pointer, Palette.LineHighlight);
+    }
+
+    if (this.parent.wrongCell) {
+      const { x, y } = this.parent.wrongCell;
+      this.drawGuideline({ x, y }, Palette.DangerHighlight);
+    }
+
+    this.drawBoxBorder();
+
+    this.drawTryInformation();
+    this.beforeTime = time;
+  }
+
   render() {
-    requestAnimationFrame(this.renderCanvas.bind(this));
+    this.parent.wrongCell = null;
+    this.active = requestAnimationFrame(this.renderCanvas.bind(this));
   }
 }

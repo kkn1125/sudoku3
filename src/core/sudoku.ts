@@ -1,5 +1,5 @@
 import Cell from "../modules/cell";
-import { GameState } from "../types/sudoku.type";
+import { grade } from "../utils/global";
 import InputManager from "./input.manager";
 import Renderer from "./renderer";
 
@@ -8,32 +8,128 @@ export interface SudokuBoardSize {
   y: number;
 }
 
+const GameState = {
+  Running: "running",
+  Pause: "pause",
+  Init: "init",
+  End: "end",
+} as const;
+type GameState = (typeof GameState)[keyof typeof GameState];
+
 export default class Sudoku {
-  // 게임을 실행 한다.
-  // 게임을 초기화 한다.
-  // 맵을 생성한다.
+  /* cell storages */
   selected: Cell | null = null;
+  wrongCell: Cell | null = null;
 
+  /* game options */
   state: GameState = GameState.Init;
-
-  tryAmount: number = 0;
-  tryLimit: number = 5;
-  level: number = 0;
-
   boards: Cell[][] = [];
   sizes: SudokuBoardSize = {
     x: 9,
     y: 9,
   };
+  tryAmount: number = 0;
+  tryLimit: number = 5;
+  level: number = 0;
+  maxLevel: number = 5;
   hints: number = 5;
 
+  /* modules */
   inputManager: InputManager;
-
   renderer: Renderer;
 
   constructor() {
     this.inputManager = new InputManager(this);
     this.renderer = new Renderer(this);
+  }
+
+  calculateEachValueAmount() {
+    const inputs = this.inputManager.inputs.slice(1);
+    this.inputManager.clearCount();
+    this.boards.flat(1).forEach((cell) => {
+      if (cell.guessValue === 0) return;
+      const input = inputs[cell.guessValue - 1];
+      input.count();
+    });
+  }
+
+  isGameClear() {
+    const inputs = this.inputManager.inputs.slice(1);
+    let isAllSuccess = inputs.length > 0;
+    for (const input of inputs) {
+      if (input.current !== 0) {
+        isAllSuccess = false;
+        break;
+      }
+    }
+    console.log(
+      "isAllSuccess",
+      isAllSuccess,
+      inputs,
+      inputs.every((i) => i.current === 0),
+      inputs.map((i) => i.current)
+    );
+    return isAllSuccess;
+  }
+
+  isGameFail() {
+    return this.tryAmount >= this.tryLimit;
+  }
+
+  checkGameClear() {
+    let isAllSuccess = this.isGameClear();
+
+    if (isAllSuccess) {
+      setTimeout(() => {
+        alert("게임에서 승리했습니다!");
+        let isOut = false;
+        while (true) {
+          const level = prompt(
+            `난이도를 변경하시겠습니까? 현재 난이도는 ${
+              grade[this.level as 1 | 2 | 3 | 4 | 5]
+            }입니다.
+            난이도는 다음과 같습니다.
+            
+            0 - 처음하는 사람
+            1 - 초급자
+            2 - 중급자
+            3 - 고급자
+            4 - 숙련자
+            5 - 전문가
+            `
+          );
+          switch (level) {
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5": {
+              if (this.level === +level) {
+                alert("같은 레벨로 진행합니다!");
+              } else {
+                alert(`${grade[level]} 단계로 진행합니다!`);
+              }
+              this.level = +level;
+              isOut = true;
+              break;
+            }
+            default: {
+              alert("정해진 난이도를 선택해주세요.");
+              break;
+            }
+          }
+          if (isOut) {
+            break;
+          }
+        }
+        this.init();
+        this.createMap();
+        this.calculateEachValueAmount();
+        this.renderer.renderInputs();
+        this.renderer.render();
+      }, 1000);
+    }
   }
 
   /* sudoku tools about map generate */
@@ -113,10 +209,13 @@ export default class Sudoku {
   }
 
   createMap() {
+    this.calculateEachValueAmount();
+
     const cellAmount = this.sizes.x * this.sizes.y;
-    const levelRatio = 1 - this.level / 5;
+    const levelRatio = 1 - this.level / this.maxLevel;
     const levelFixedAmount =
-      Math.floor(cellAmount * levelRatio) + (this.level - 5) * 5;
+      // if change 5, decrease minimum guess cell
+      Math.floor(cellAmount * levelRatio) + (this.level - this.maxLevel) * 5;
     // this.boards = this.createStraightOrderMap(2);
     this.boards = this.createRandomBaseOrderMap(this.createRandomBaseArray());
     // this.boards = this.createRandomBaseOrderMap();
@@ -143,13 +242,19 @@ export default class Sudoku {
 
   /* sudoku tools about game state */
   init() {
+    this.renderer.destroy();
     this.state = GameState.Init;
     this.boards = [];
+    this.selected = null;
+    this.inputManager.clearWrongCell();
+    this.wrongCell = null;
     this.sizes = {
       x: 9,
       y: 9,
     };
+    this.tryAmount = 0;
     this.hints = 5;
+    this.inputManager.memoMode = false;
   }
 
   /**
@@ -170,7 +275,9 @@ export default class Sudoku {
   run() {
     this.state = GameState.Running;
     this.createMap();
+    this.calculateEachValueAmount();
     this.renderer.render();
+    this.renderer.renderInputs();
   }
 
   pause() {
@@ -212,7 +319,7 @@ export default class Sudoku {
         }
       }
     }
-    console.log(blockX + "," + blockY + " :", temp);
+    // console.log(blockX + "," + blockY + " :", temp);
     return temp;
   }
 
@@ -220,7 +327,7 @@ export default class Sudoku {
   isCorrect(area: Cell[]) {
     const areaList = area.map((cell) => cell.guessValue).filter((_) => _ !== 0);
     let isDuplicated = false;
-    console.log("areaList", areaList, area);
+    // console.log("areaList", areaList, area);
     for (const cell of area) {
       const isMatched =
         areaList.indexOf(cell.guessValue) ===
@@ -277,9 +384,16 @@ export default class Sudoku {
   /* try amount control */
   tryFailCount() {
     this.tryAmount += 1;
-    if (this.tryAmount >= this.tryLimit) {
+    if (this.isGameFail()) {
       console.warn("game over!");
-      alert("모든 기회를 소진했습니다!");
+      setTimeout(() => {
+        alert("모든 기회를 소진했습니다!");
+        this.init();
+        this.createMap();
+        this.calculateEachValueAmount();
+        this.renderer.renderInputs();
+        this.renderer.render();
+      }, 500);
       // TODO: 게임 리셋
       return;
     }

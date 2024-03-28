@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 
-import { GameState } from "../types/sudoku.type";
 import Sudoku from "./sudoku";
 
 describe("[스도쿠 엔진 테스트]", () => {
@@ -15,7 +14,7 @@ describe("[스도쿠 엔진 테스트]", () => {
   /* 각 테스트마다 스도쿠 엔진 초기화 */
   afterEach(() => {
     sudoku.init();
-    expect(sudoku.state).toStrictEqual(GameState.Init);
+    expect(sudoku.state).toStrictEqual("init");
   });
 
   /* 스도쿠 엔진 테스트 */
@@ -25,7 +24,7 @@ describe("[스도쿠 엔진 테스트]", () => {
 
   it("[스도쿠 엔진: 실행] success", () => {
     sudoku.run();
-    expect(sudoku.state).toStrictEqual(GameState.Running);
+    expect(sudoku.state).toStrictEqual("running");
   });
 
   it("[스도쿠 엔진: 맵 생성] success", () => {
