@@ -7,7 +7,7 @@
     "dev": "vite",
     "test": "jest --coverage",
     "prebuild": "rm -rf dist/",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && touch dist/.nojekyll",
     "preview": "vite preview",
     "deploy": " cd dist && git init && git add -A && git commit -m \"gh-pages\" && git push https://github.com/kkn1125/sudoku3.git master:gh-pages -f"
   },
