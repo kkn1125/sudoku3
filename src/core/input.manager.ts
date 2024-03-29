@@ -148,7 +148,10 @@ export default class InputManager {
     }
 
     if (target.id === 'game-level') {
-      this.parent.levelChangeAndRestartGame();
+      const selected = this.parent.askSetLevel();
+      if (selected) {
+        this.parent.restartGame();
+      }
       return;
     }
     if (target.id === 'game-state') {

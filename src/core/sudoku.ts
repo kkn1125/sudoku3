@@ -122,13 +122,13 @@ export default class Sudoku {
     }
   }
 
-  /* 레벨 재설정 및 재시작 */
-  levelChangeAndRestartGame() {
+  askSetLevel() {
     let isOut = false;
+    let selected = false;
     while (true) {
       const level = prompt(
         `난이도를 변경하시겠습니까? 현재 난이도는 ${
-          grade[this.level as 1 | 2 | 3]
+          grade[this.level as 0 | 1 | 2 | 3]
         }입니다.
 난이도는 다음과 같습니다.
 
@@ -150,6 +150,7 @@ export default class Sudoku {
           }
           this.level = +level;
           isOut = true;
+          selected = true;
           break;
         }
         case null: {
@@ -167,6 +168,12 @@ export default class Sudoku {
         break;
       }
     }
+    return selected;
+  }
+
+  /* 레벨 재설정 및 재시작 */
+  levelChangeAndRestartGame() {
+    this.askSetLevel();
     this.restartGame();
   }
 
