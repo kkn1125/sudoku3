@@ -1,61 +1,64 @@
-import Cell from "../modules/cell";
-import { format, grade } from "../utils/global";
-import History from "./history";
-import Sudoku from "./sudoku";
+import Cell from '../modules/cell';
+import { format, grade } from '../utils/global';
+import History from './history';
+import Sudoku from './sudoku';
 
 const Palette = {
-  White: "#ffffff",
-  Default: "#565656",
-  DefaultText: "#565656",
-  DefaultBorder: "#56565656",
-  BoxBorder: "#acacac",
-  Selected: "#a625c576",
-  Success: "#248d2e16",
-  SameGuessValue: "#a625c536",
-  Pointer: "#a625c556",
-  Correct: "#248d2e",
-  Danger: "#bb3636",
-  DangerPointHighlight: "#bb363676",
-  DangerHighlight: "#bb363636",
-  LineHighlight: "#a625c516",
+  White: '#ffffff',
+  Default: '#565656',
+  DefaultText: '#565656',
+  DefaultBorder: '#56565656',
+  BoxBorder: '#acacac',
+  Selected: '#a625c576',
+  Success: '#248d2e16',
+  SameGuessValue: '#a625c536',
+  Pointer: '#a625c556',
+  Correct: '#248d2e',
+  Danger: '#bb3636',
+  DangerPointHighlight: '#bb363676',
+  DangerHighlight: '#bb363636',
+  LineHighlight: '#a625c516',
 } as const;
 type Palette = (typeof Palette)[keyof typeof Palette];
 
 export default class Renderer {
   renderEndHistory(history: History) {
-    const playTime = "- Play Time:" + "\n" + format(history.playTime);
+    const playTime = '- Play Time:' + '\n' + format(history.playTime);
     const firstCorrectTime =
-      "- First Correct Time:" + "\n" + format(history.firstCorrectTime);
+      '- First Correct Time:' + '\n' + format(history.firstCorrectTime);
     const firstFailureTime =
-      "- First Failure Time:" + "\n" + format(history.firstFailureTime);
-    const pauseAmount = "- Pause Amount:" + "\n" + history.pauseAmount;
+      '- First Failure Time:' + '\n' + format(history.firstFailureTime);
+    const pauseAmount = '- Pause Amount:' + '\n' + history.pauseAmount;
     alert(
-      `# Sudoku Result!\n\n\n${playTime}\n\n${firstCorrectTime}\n\n${firstFailureTime}\n\n${pauseAmount}`
+      `# Sudoku Result!\n\n\n${playTime}\n\n${firstCorrectTime}\n\n${firstFailureTime}\n\n${pauseAmount}`,
     );
   }
+
   playButtonToggle(state: string) {
-    console.log(state);
-    const stateEl = document.querySelector("#game-state") as HTMLButtonElement;
-    const pageEl = document.querySelector("#page") as HTMLDivElement;
-    if (state === "running") {
-      stateEl.dataset.value = "running";
-      pageEl.dataset.hidden = "true";
-    } else if (state === "hold") {
-      stateEl.dataset.value = "hold";
-      pageEl.dataset.hidden = "false";
+    // console.log(state);
+    const stateEl = document.querySelector('#game-state') as HTMLButtonElement;
+    const pageEl = document.querySelector('#page') as HTMLDivElement;
+    if (state === 'running') {
+      stateEl.dataset.value = 'running';
+      pageEl.dataset.hidden = 'true';
+    } else if (state === 'hold') {
+      stateEl.dataset.value = 'hold';
+      pageEl.dataset.hidden = 'false';
     }
   }
+
   updateHint() {
     const hinting = document.querySelector(
-      "#game-hinting"
+      '#game-hinting',
     ) as HTMLButtonElement;
     if (hinting) {
-      hinting.dataset.amount = "" + this.parent.hints;
+      hinting.dataset.amount = '' + this.parent.hints;
       if (this.parent.hints === 0) {
         hinting.disabled = true;
       }
     }
   }
+
   parent: Sudoku;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -64,15 +67,15 @@ export default class Renderer {
   selected: { x: number; y: number } = { x: -1, y: -1 };
   beforeTime: number = 0;
 
-  inputPlace: "right" | "bottom" = "right";
+  inputPlace: 'right' | 'bottom' = 'right';
 
   timeoutQueue: [number, Function][] = [];
 
   activeValue: number = 0;
 
   constructor(sudoku: Sudoku) {
-    const CANVAS = document.querySelector("#app") as HTMLCanvasElement;
-    const ctx = CANVAS.getContext("2d") as CanvasRenderingContext2D;
+    const CANVAS = document.querySelector('#app') as HTMLCanvasElement;
+    const ctx = CANVAS.getContext('2d') as CanvasRenderingContext2D;
     this.parent = sudoku;
     this.canvas = CANVAS;
     this.ctx = ctx;
@@ -102,15 +105,17 @@ export default class Renderer {
 
   execListener() {
     this.handleResizeCanvas();
-    window.addEventListener("resize", this.handleResizeCanvas.bind(this));
+    window.addEventListener('resize', this.handleResizeCanvas.bind(this));
   }
 
   maxOr(mediaSize: number) {
     return innerWidth < mediaSize;
   }
+
   minOr(mediaSize: number) {
     return mediaSize <= innerWidth;
   }
+
   minAndMax(minMediaSize: number, maxMediaSize: number) {
     return minMediaSize <= innerWidth && innerWidth < maxMediaSize;
   }
@@ -123,25 +128,25 @@ export default class Renderer {
     // this.parent.offsetTopPx = 100 * ratio;
     if (this.minOr(1268)) {
       this.size = 50 * 1.2;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else if (this.minAndMax(1024, 1268)) {
       this.size = (50 / ratio) * 0.7;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else if (this.minAndMax(768, 1024)) {
       this.size = 46;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else if (this.minAndMax(568, 768)) {
       this.size = 42;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else if (this.minAndMax(368, 568)) {
       this.size = 34;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else if (this.maxOr(368)) {
       this.size = 30;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     } else {
       this.size = 56;
-      this.inputPlace = "right";
+      this.inputPlace = 'right';
     }
   }
 
@@ -179,7 +184,7 @@ export default class Renderer {
 
     this.ctx.fillRect(pox, poy, this.size, this.size);
 
-    this.ctx.textAlign = "center";
+    this.ctx.textAlign = 'center';
     if (cell.isStateFixed()) {
       this.ctx.fillStyle = Palette.Default;
     } else {
@@ -201,7 +206,7 @@ export default class Renderer {
         this.ctx.strokeRect(pox, poy, this.size, this.size);
       }
 
-      this.ctx.font = "bold 8px san-serif";
+      this.ctx.font = 'bold 8px san-serif';
       // const sliced = this.splitBy(memos, 3);
       if (isSame) {
         this.ctx.fillStyle = Palette.DefaultText;
@@ -212,23 +217,23 @@ export default class Renderer {
       const pad = this.size * 0.1 * ratio;
       memos.forEach((memo, index) => {
         // const slicedText = slice.join("　");
-        const { actualBoundingBoxAscent } = this.ctx.measureText("" + memo);
+        const { actualBoundingBoxAscent } = this.ctx.measureText('' + memo);
         this.ctx.fillText(
-          "" + memo,
+          '' + memo,
           pox + pad * (index % 3) + (this.size / 2 - pad),
           poy +
             (10 / actualBoundingBoxAscent) * ratio * Math.floor(index / 3) +
             pad * Math.floor(index / 3) +
-            (this.size / 2 - pad)
+            (this.size / 2 - pad),
         );
       });
     } else {
-      this.ctx.font = "bold 16px san-serif";
+      this.ctx.font = 'bold 16px san-serif';
       const { actualBoundingBoxAscent } = this.ctx.measureText(value);
       this.ctx.fillText(
         value,
         pox + this.size / 2,
-        poy + this.size / 2 + actualBoundingBoxAscent / 2
+        poy + this.size / 2 + actualBoundingBoxAscent / 2,
       );
     }
   }
@@ -243,22 +248,22 @@ export default class Renderer {
   }
 
   createButtonGroup(...els: HTMLButtonElement[]) {
-    const group = document.createElement("div");
-    group.classList.add("btn-group");
+    const group = document.createElement('div');
+    group.classList.add('btn-group');
     group.append(...els);
     return group;
   }
 
   renderInputs() {
     const body = document.body;
-    const inputs = document.querySelector("#inputs") as HTMLDivElement;
-    inputs.innerHTML = "";
+    const inputs = document.querySelector('#inputs') as HTMLDivElement;
+    inputs.innerHTML = '';
 
     const memoEl = this.convertButtonEl(this.parent.inputManager.memoCell);
     if (this.parent.inputManager.memoMode) {
-      memoEl.classList.add("memomode");
+      memoEl.classList.add('memomode');
     } else {
-      memoEl.classList.remove("memomode");
+      memoEl.classList.remove('memomode');
     }
 
     // 로직 수정
@@ -269,7 +274,7 @@ export default class Renderer {
       this.parent.inputManager.inputs
         .slice(1)
         .map((input) => this.convertButtonEl(input)),
-      3
+      3,
     ).forEach((group) => {
       inputs.append(this.createButtonGroup(...group));
     });
@@ -279,7 +284,7 @@ export default class Renderer {
 
   convertButtonEl(cellInput: Cell) {
     const value = cellInput.readButtonValue();
-    const cell = document.createElement("button");
+    const cell = document.createElement('button');
     if (
       !this.parent.inputManager.memoMode &&
       cellInput.isTypeBoard() &&
@@ -289,9 +294,9 @@ export default class Renderer {
     }
     cell.innerText = value;
     if (cellInput.isTypeInput()) {
-      cell.dataset.value = "" + cellInput.originValue;
+      cell.dataset.value = '' + cellInput.originValue;
     } else if (cellInput.isTypeMemo()) {
-      cell.dataset.value = "memo";
+      cell.dataset.value = 'memo';
     }
     return cell;
   }
@@ -301,14 +306,14 @@ export default class Renderer {
 
     for (const cellInput of this.parent.inputManager.inputs) {
       const pox =
-        this.inputPlace === "right"
+        this.inputPlace === 'right'
           ? 10 * this.size + centerX - boardX
           : cellInput.y * this.size +
             centerX -
             boardX +
             Math.floor(cellInput.y / 6) * -this.size;
       const poy =
-        this.inputPlace === "right"
+        this.inputPlace === 'right'
           ? cellInput.y * this.size + centerY - boardY
           : 10 * this.size +
             centerY -
@@ -316,9 +321,9 @@ export default class Renderer {
             Math.floor(cellInput.y / 6) * this.size +
             this.parent.offsetTopPx;
       const value =
-        "" + (cellInput.guessValue === 0 ? "X" : cellInput.guessValue);
-      this.ctx.font = "bold 16px san-serif";
-      this.ctx.textAlign = "center";
+        '' + (cellInput.guessValue === 0 ? 'X' : cellInput.guessValue);
+      this.ctx.font = 'bold 16px san-serif';
+      this.ctx.textAlign = 'center';
       this.ctx.strokeStyle = Palette.DefaultBorder;
       if (this.pointer.x === 10 && this.pointer.y === cellInput.y) {
         this.ctx.fillStyle = Palette.Pointer;
@@ -337,7 +342,7 @@ export default class Renderer {
         poy +
           this.size / 2 +
           actualBoundingBoxAscent / 2 +
-          this.parent.offsetTopPx
+          this.parent.offsetTopPx,
       );
     }
   }
@@ -354,26 +359,26 @@ export default class Renderer {
       cPox(0),
       cPoy(pointer.y),
       this.size * pointer.x,
-      this.size
+      this.size,
     );
     this.ctx.fillRect(
       (pointer.x + 1) * this.size + centerX - boardX,
       cPoy(pointer.y),
       this.size * (this.parent.sizes.x - (pointer.x + 1)),
-      this.size
+      this.size,
     );
     /* vertical highlight */
     this.ctx.fillRect(
       cPox(pointer.x),
       cPoy(0),
       this.size,
-      this.size * pointer.y
+      this.size * pointer.y,
     );
     this.ctx.fillRect(
       cPox(pointer.x),
       cPoy(pointer.y + 1),
       this.size,
-      this.size * (this.parent.sizes.y - (pointer.y + 1))
+      this.size * (this.parent.sizes.y - (pointer.y + 1)),
     );
 
     /* pointer center */
@@ -418,14 +423,14 @@ export default class Renderer {
     this.ctx.fillText(
       `⏱️ ${format(this.parent.timer)}`,
       borderX(1.5),
-      borderY(-0.2) - 25
+      borderY(-0.2) - 25,
     );
     this.ctx.fillText(
       `Lv.${this.parent.level} [ ${grade[this.parent.level as 1 | 2 | 3]} ] (${
         this.parent.tryAmount
       } / ${this.parent.tryLimit})`,
       borderX(1.5),
-      borderY(-0.2)
+      borderY(-0.2),
     );
   }
 

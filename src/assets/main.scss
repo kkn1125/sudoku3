@@ -43,11 +43,11 @@ body {
     justify-content: center;
     align-items: flex-start;
 
-    &[data-hidden="false"] {
+    &[data-hidden='false'] {
       width: 100%;
       &::before {
         position: absolute;
-        content: "pause";
+        content: 'pause';
         top: calc(2.5vh + 10%);
         display: flex;
         justify-content: center;
@@ -66,7 +66,7 @@ body {
         @include radius(1rem);
       }
     }
-    &[data-hidden="true"] {
+    &[data-hidden='true'] {
       width: 0vw;
     }
   }
@@ -98,25 +98,25 @@ body {
       }
     }
     #game-state {
-      &[data-value="hold"] {
+      &[data-value='hold'] {
         &::before {
-          content: "▶️";
+          content: '▶️';
         }
       }
-      &[data-value="running"] {
+      &[data-value='running'] {
         &::before {
-          content: "⏸️";
+          content: '⏸️';
         }
       }
     }
     #game-restart {
       &::before {
-        content: "🔄️";
+        content: '🔄️';
       }
     }
     #game-level {
       &::before {
-        content: "Lv.";
+        content: 'Lv.';
         font-weight: 700;
         -webkit-text-stroke: 1px black;
         color: white;
@@ -125,14 +125,14 @@ body {
     #game-hinting {
       position: relative;
       &::before {
-        content: "💡";
+        content: '💡';
         white-space: nowrap;
         font-weight: 700;
         -webkit-text-stroke: 1px black;
         color: white;
       }
       &::after {
-        content: "x" attr(data-amount);
+        content: 'x' attr(data-amount);
         position: absolute;
         top: 55%;
         font-weight: 700;
@@ -240,8 +240,12 @@ body {
     }
 
     button {
-      $neumorphism: -5px -5px 8px 0 #ffffff, 5px 5px 8px 0 #656565;
-      $pushed-neumorphism: -3px -3px 8px 0 #ffffff, 3px 3px 8px 0 #656565;
+      $neumorphism:
+        -5px -5px 8px 0 #ffffff,
+        5px 5px 8px 0 #656565;
+      $pushed-neumorphism:
+        -3px -3px 8px 0 #ffffff,
+        3px 3px 8px 0 #656565;
       box-shadow: $neumorphism;
       $radius: 0.3rem;
       z-index: 2;
@@ -249,10 +253,14 @@ body {
       &:not([disabled]) {
         cursor: pointer;
         &:hover {
-          box-shadow: $neumorphism, inset 0 0 9999999999999px 0 #00000026;
+          box-shadow:
+            $neumorphism,
+            inset 0 0 9999999999999px 0 #00000026;
         }
         &:active {
-          box-shadow: $pushed-neumorphism, inset 0 0 9999999999999px 0 #00000056;
+          box-shadow:
+            $pushed-neumorphism,
+            inset 0 0 9999999999999px 0 #00000056;
         }
       }
       &[disabled] {

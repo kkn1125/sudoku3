@@ -2,9 +2,9 @@
  * @jest-environment jsdom
  */
 
-import Sudoku from "./sudoku";
+import Sudoku from './sudoku';
 
-describe("[스도쿠 엔진 테스트]", () => {
+describe('[스도쿠 엔진 테스트]', () => {
   let sudoku: Sudoku;
 
   /* 초기 시작 시 스도쿠 정의 */
@@ -14,29 +14,29 @@ describe("[스도쿠 엔진 테스트]", () => {
   /* 각 테스트마다 스도쿠 엔진 초기화 */
   afterEach(() => {
     sudoku.run();
-    expect(sudoku.state).toStrictEqual("init");
+    expect(sudoku.state).toStrictEqual('init');
   });
 
   /* 스도쿠 엔진 테스트 */
-  it("[스도쿠 엔진: 정의] success", () => {
+  it('[스도쿠 엔진: 정의] success', () => {
     expect(sudoku).toBeDefined();
   });
 
-  it("[스도쿠 엔진: 실행] success", () => {
+  it('[스도쿠 엔진: 실행] success', () => {
     sudoku.run();
-    expect(sudoku.state).toStrictEqual("running");
+    expect(sudoku.state).toStrictEqual('running');
   });
 
-  it("[스도쿠 엔진: 맵 생성] success", () => {
+  it('[스도쿠 엔진: 맵 생성] success', () => {
     sudoku.run();
     expect(sudoku.boards.length).toStrictEqual(9);
     expect(sudoku.boards[0].length).toStrictEqual(9);
   });
 
-  it("[스도쿠 엔진: 셀 선택] success", () => {
+  it('[스도쿠 엔진: 셀 선택] success', () => {
     sudoku.run();
 
-    const selectOneSpy = jest.spyOn(sudoku, "selectOne");
+    const selectOneSpy = jest.spyOn(sudoku, 'selectOne');
 
     const cell = sudoku.selectOne(1, 1);
 
@@ -48,10 +48,10 @@ describe("[스도쿠 엔진 테스트]", () => {
     expect(cell.isMatchedWithOrigin()).toStrictEqual(false);
   });
 
-  it("[스도쿠 엔진: 셀 열 선택] success", () => {
+  it('[스도쿠 엔진: 셀 열 선택] success', () => {
     sudoku.run();
 
-    const selectColumnSpy = jest.spyOn(sudoku, "selectColumn");
+    const selectColumnSpy = jest.spyOn(sudoku, 'selectColumn');
 
     const columns = sudoku.selectColumn(1);
 
@@ -63,8 +63,8 @@ describe("[스도쿠 엔진 테스트]", () => {
     expect(sudoku.isCorrect(columns)).toBeFalsy();
   });
 
-  it("[스도쿠 엔진: 랜덤 맞추기 셀 선택] success", () => {
-    const randomizeCellsSpy = jest.spyOn(sudoku, "createRandomFixedCells");
+  it('[스도쿠 엔진: 랜덤 맞추기 셀 선택] success', () => {
+    const randomizeCellsSpy = jest.spyOn(sudoku, 'createRandomFixedCells');
 
     const randomizeCells1 = sudoku.createRandomFixedCells(5);
     const randomizeCells2 = sudoku.createRandomFixedCells(8);

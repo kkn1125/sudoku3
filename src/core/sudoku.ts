@@ -1,8 +1,8 @@
-import Cell from "../modules/cell";
-import { grade } from "../utils/global";
-import History from "./history";
-import InputManager from "./input.manager";
-import Renderer from "./renderer";
+import Cell from '../modules/cell';
+import { grade } from '../utils/global';
+import History from './history';
+import InputManager from './input.manager';
+import Renderer from './renderer';
 
 export interface SudokuBoardSize {
   x: number;
@@ -10,10 +10,10 @@ export interface SudokuBoardSize {
 }
 
 const GameState = {
-  Running: "running",
-  Hold: "hold",
-  Init: "init",
-  End: "end",
+  Running: 'running',
+  Hold: 'hold',
+  Init: 'init',
+  End: 'end',
 } as const;
 type GameState = (typeof GameState)[keyof typeof GameState];
 
@@ -60,7 +60,7 @@ export default class Sudoku {
       const [cell] = this.createRandomFixedCells(1);
       if (cell.isStateFixed()) {
         this.showHint();
-        console.log("re try");
+        console.log('re try');
         return;
       }
       cell.stateFixed();
@@ -115,7 +115,7 @@ export default class Sudoku {
     if (isAllSuccess) {
       this.end();
       setTimeout(() => {
-        alert("게임에서 승리했습니다!");
+        alert('게임에서 승리했습니다!');
         this.showHistory();
         this.levelChangeAndRestartGame();
       }, 1000);
@@ -136,15 +136,15 @@ export default class Sudoku {
 1 - 초급자
 2 - 중급자
 3 - 고급자
-`.trim()
+`.trim(),
       );
       switch (level) {
-        case "0":
-        case "1":
-        case "2":
-        case "3": {
+        case '0':
+        case '1':
+        case '2':
+        case '3': {
           if (this.level === +level) {
-            alert("같은 레벨로 진행합니다!");
+            alert('같은 레벨로 진행합니다!');
           } else {
             alert(`${grade[level]} 단계로 진행합니다!`);
           }
@@ -158,7 +158,7 @@ export default class Sudoku {
         }
         default: {
           alert(
-            "정해진 난이도를 선택해주세요. 취소를 누르시면 다시 게임으로 돌아갑니다."
+            '정해진 난이도를 선택해주세요. 취소를 누르시면 다시 게임으로 돌아갑니다.',
           );
           break;
         }
@@ -222,7 +222,7 @@ export default class Sudoku {
    * @param {number} seedNumber 시작 숫자
    * @returns 시작 숫자를 기반으로 생성된 숫자 배열
    */
-  private createStraightOrderMap(seedNumber?: number) {
+  createStraightOrderMap(seedNumber?: number) {
     const temp = [];
     const { x, y } = this.sizes;
     let startValue = seedNumber || 0;
@@ -232,7 +232,7 @@ export default class Sudoku {
         const cell = new Cell(
           col,
           row,
-          ((startValue + Math.floor(row / 3) + row * 3) % 9) + 1
+          ((startValue + Math.floor(row / 3) + row * 3) % 9) + 1,
         );
         rows.push(cell);
       }
@@ -252,7 +252,7 @@ export default class Sudoku {
         const cell = new Cell(
           col,
           row,
-          ((randomBase[col] + Math.floor(row / 3) + row * 3) % 9) + 1
+          ((randomBase[col] + Math.floor(row / 3) + row * 3) % 9) + 1,
         );
         rows.push(cell);
       }
@@ -335,8 +335,8 @@ export default class Sudoku {
       level > this.maxLevel
         ? this.maxLevel
         : level < this.minLevel
-        ? this.minLevel
-        : level;
+          ? this.minLevel
+          : level;
   }
 
   /* 초기 게임 엔진 시작 */
@@ -482,10 +482,10 @@ export default class Sudoku {
   tryFailCount() {
     this.tryAmount += 1;
     if (this.isGameFail()) {
-      console.warn("game over!");
+      console.warn('game over!');
       this.end();
       setTimeout(() => {
-        alert("게임에서 졌습니다!");
+        alert('게임에서 졌습니다!');
         this.showHistory();
         this.levelChangeAndRestartGame();
       }, 500);

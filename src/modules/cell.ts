@@ -1,16 +1,16 @@
-import { v4 } from "uuid";
+import { v4 } from 'uuid';
 
 const CellState = {
-  Fixed: "fixed",
-  Guessed: "guess",
-  Hinted: "hinted",
+  Fixed: 'fixed',
+  Guessed: 'guess',
+  Hinted: 'hinted',
 } as const;
 type CellState = (typeof CellState)[keyof typeof CellState];
 
 const CellType = {
-  Board: "board",
-  Input: "input",
-  Memo: "memo",
+  Board: 'board',
+  Input: 'input',
+  Memo: 'memo',
 } as const;
 type CellType = (typeof CellType)[keyof typeof CellType];
 
@@ -40,7 +40,7 @@ export default class Cell {
   }
 
   constructor(x: number, y: number, value: number) {
-    this.id = "cell-" + v4();
+    this.id = 'cell-' + v4();
     this.x = x;
     this.y = y;
     this.memo = [];
@@ -132,19 +132,19 @@ export default class Cell {
   /* read value */
   readGuessValue() {
     const valueByState =
-      this.state === CellState.Fixed ? this.originValue : this.guessValue || "";
-    return "" + valueByState;
+      this.state === CellState.Fixed ? this.originValue : this.guessValue || '';
+    return '' + valueByState;
   }
   readButtonValue() {
     switch (this.type) {
       case CellType.Board: {
-        return "" + this.guessValue;
+        return '' + this.guessValue;
       }
       case CellType.Memo: {
-        return "✍️";
+        return '✍️';
       }
       case CellType.Input: {
-        return "" + (this.guessValue === 0 ? "❌" : this.guessValue);
+        return '' + (this.guessValue === 0 ? '❌' : this.guessValue);
       }
     }
   }

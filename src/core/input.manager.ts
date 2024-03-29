@@ -1,5 +1,5 @@
-import Cell from "../modules/cell";
-import Sudoku from "./sudoku";
+import Cell from '../modules/cell';
+import Sudoku from './sudoku';
 
 export default class InputManager {
   parent: Sudoku;
@@ -29,9 +29,9 @@ export default class InputManager {
       this.inputs.push(cell);
     }
 
-    window.addEventListener("keydown", this.handleKeydown.bind(this));
-    window.addEventListener("mousemove", this.handlePointer.bind(this));
-    window.addEventListener("click", this.handleClick.bind(this));
+    window.addEventListener('keydown', this.handleKeydown.bind(this));
+    window.addEventListener('mousemove', this.handlePointer.bind(this));
+    window.addEventListener('click', this.handleClick.bind(this));
   }
 
   clearCount() {
@@ -46,11 +46,11 @@ export default class InputManager {
     const boardY =
       this.parent.sizes.y * this.parent.renderer.size * this.parent.offsetTop;
     const pox = Math.floor(
-      (e.clientX - canvasX + boardX) / this.parent.renderer.size
+      (e.clientX - canvasX + boardX) / this.parent.renderer.size,
     );
     const poy = Math.floor(
       (e.clientY - canvasY + boardY - this.parent.offsetTopPx) /
-        this.parent.renderer.size
+        this.parent.renderer.size,
     );
     return { x: pox, y: poy };
   }
@@ -74,7 +74,7 @@ export default class InputManager {
     }
 
     if (this.parent.selected && this.parent.selected.isStateGuessed()) {
-      if (key === "backspace") {
+      if (key === 'backspace') {
         if (this.memoMode) {
           this.parent.selected.removeGuessValue();
           this.parent.selected.removeAllMemo();
@@ -147,19 +147,19 @@ export default class InputManager {
       return;
     }
 
-    if (target.id === "game-level") {
+    if (target.id === 'game-level') {
       this.parent.levelChangeAndRestartGame();
       return;
     }
-    if (target.id === "game-state") {
+    if (target.id === 'game-state') {
       this.parent.resumeOrpause();
       return;
     }
-    if (target.id === "game-restart") {
+    if (target.id === 'game-restart') {
       this.parent.restartGame();
       return;
     }
-    if (target.id === "game-hinting") {
+    if (target.id === 'game-hinting') {
       this.parent.showHint();
       return;
     }
@@ -167,7 +167,7 @@ export default class InputManager {
     if (this.activeValue === 0 || !this.parent.isStateRun()) return;
 
     if (
-      target.tagName !== "button" &&
+      target.tagName !== 'button' &&
       0 <= pos.x &&
       pos.x < this.parent.sizes.x &&
       0 <= pos.y &&
@@ -186,7 +186,7 @@ export default class InputManager {
       }
 
       /* memo mode */
-      if (target.dataset.value === "-1") {
+      if (target.dataset.value === '-1') {
         this.toggleMemoMode();
         this.parent.renderer.renderInputs();
       } else {
@@ -224,7 +224,7 @@ export default class InputManager {
           }
         }
       }
-      if (!this.memoMode || !("value" in target.dataset)) {
+      if (!this.memoMode || !('value' in target.dataset)) {
         this.parent.selected = null;
       }
     }
@@ -295,7 +295,7 @@ export default class InputManager {
             this.parent.currentHistory.firstFailureTime = this.parent.timer;
           }
         }
-        console.warn("[not correct]");
+        console.warn('[not correct]');
         cell.guessValueNotPassed();
         // 엔진에 실패 횟수 카운트
         this.parent.tryFailCount();
