@@ -268,6 +268,7 @@ export default class InputManager {
       if (isRowFill) {
         // 행이 통과되면 해당 영역 셀 완료 표시
         row.forEach((c) => {
+          c.guessValuePassed();
           c.success();
           this.resetQueue.push(c);
         });
@@ -275,6 +276,7 @@ export default class InputManager {
       if (isColumnFill) {
         // 열이 통과되면 해당 영역 셀 완료 표시
         column.forEach((c) => {
+          c.guessValuePassed();
           c.success();
           this.resetQueue.push(c);
         });
@@ -282,6 +284,7 @@ export default class InputManager {
       if (isBoxFill) {
         // 영역이 통과되면 해당 영역 셀 완료 표시
         box.forEach((c) => {
+          c.guessValuePassed();
           c.success();
           this.resetQueue.push(c);
         });

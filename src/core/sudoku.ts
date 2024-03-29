@@ -60,7 +60,7 @@ export default class Sudoku {
       const [cell] = this.createRandomFixedCells(1);
       if (cell.isStateFixed()) {
         this.showHint();
-        console.log('re try');
+        // console.log('re try');
         return;
       }
       cell.stateFixed();
@@ -321,14 +321,12 @@ export default class Sudoku {
 
   /**
    *
-   * @param {number} level - 0 ~ 5 까지 난이도 조정
+   * @param {number} level - 0 ~ 3 까지 난이도 조정
    * @example
    * sudoku.setLevel(0); // 처음하는 사람
    * sudoku.setLevel(1); // 초급자
    * sudoku.setLevel(2); // 중급자
    * sudoku.setLevel(3); // 고급자
-   * sudoku.setLevel(4); // 숙련자
-   * sudoku.setLevel(5); // 전문가
    */
   setLevel(level: number) {
     this.level =
@@ -379,6 +377,7 @@ export default class Sudoku {
   /* renderer로 히스토리 보기 */
   private showHistory() {
     if (this.currentHistory) {
+      this.currentHistory.playTime = this.timer;
       this.renderer.renderEndHistory(this.currentHistory);
     }
   }

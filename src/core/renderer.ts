@@ -23,14 +23,17 @@ type Palette = (typeof Palette)[keyof typeof Palette];
 
 export default class Renderer {
   renderEndHistory(history: History) {
+    const solvedGrade =
+      '- Solved Level:' + '\n' + grade[this.parent.level as 0 | 1 | 2 | 3];
     const playTime = '- Play Time:' + '\n' + format(history.playTime);
     const firstCorrectTime =
       '- First Correct Time:' + '\n' + format(history.firstCorrectTime);
     const firstFailureTime =
       '- First Failure Time:' + '\n' + format(history.firstFailureTime);
     const pauseAmount = '- Pause Amount:' + '\n' + history.pauseAmount;
+    const useHint = '- Used Hints:' + '\n' + (5 - this.parent.hints);
     alert(
-      `# Sudoku Result!\n\n\n${playTime}\n\n${firstCorrectTime}\n\n${firstFailureTime}\n\n${pauseAmount}`,
+      `# Sudoku Result!\n\n\n${solvedGrade}\n\n${playTime}\n\n${firstCorrectTime}\n\n${firstFailureTime}\n\n${pauseAmount}\n\n${useHint}`,
     );
   }
 
