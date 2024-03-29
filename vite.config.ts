@@ -15,8 +15,8 @@ export default defineConfig(({ command, mode }) => {
   const HOST = process.env.HOST;
   const PORT = Number(process.env.PORT) || 5000;
 
-  const BASE = process.env.BASE || '/sudoku3/';
   const MODE = process.env.NODE_ENV || 'production';
+  const BASE = MODE !== 'production' ? '/sudoku3/' : process.env.BASE;
 
   return {
     // vite config
