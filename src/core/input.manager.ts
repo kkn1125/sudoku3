@@ -155,6 +155,14 @@ export default class InputManager {
       this.parent.resumeOrpause();
       return;
     }
+    if (target.id === "game-restart") {
+      this.parent.restartGame();
+      return;
+    }
+    if (target.id === "game-hinting") {
+      this.parent.showHint();
+      return;
+    }
 
     if (this.activeValue === 0 || !this.parent.isStateRun()) return;
 

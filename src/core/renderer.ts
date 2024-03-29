@@ -45,6 +45,17 @@ export default class Renderer {
       pageEl.dataset.hidden = "false";
     }
   }
+  updateHint() {
+    const hinting = document.querySelector(
+      "#game-hinting"
+    ) as HTMLButtonElement;
+    if (hinting) {
+      hinting.dataset.amount = "" + this.parent.hints;
+      if (this.parent.hints === 0) {
+        hinting.disabled = true;
+      }
+    }
+  }
   parent: Sudoku;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;

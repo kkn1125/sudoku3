@@ -122,6 +122,28 @@ body {
         color: white;
       }
     }
+    #game-hinting {
+      position: relative;
+      &::before {
+        content: "💡";
+        white-space: nowrap;
+        font-weight: 700;
+        -webkit-text-stroke: 1px black;
+        color: white;
+      }
+      &::after {
+        content: "x" attr(data-amount);
+        position: absolute;
+        top: 55%;
+        font-weight: 700;
+        -webkit-text-stroke: 1px black;
+        color: white;
+        @include transform(translateY(-50%));
+      }
+      &[disabled] {
+        opacity: 0.5;
+      }
+    }
   }
 
   #inputs {

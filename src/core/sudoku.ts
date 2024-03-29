@@ -35,7 +35,8 @@ export default class Sudoku {
   tryAmount: number = 0;
   tryLimit: number = 5;
   level: number = 0;
-  maxLevel: number = 5;
+  minLevel: number = 0;
+  maxLevel: number = 3;
   hints: number = 5;
 
   timer: number = 0;
@@ -52,6 +53,23 @@ export default class Sudoku {
     this.renderer = new Renderer(this);
   }
 
+  /* 무작위 사용자 입력 셀 중 하나 픽스로 변환 */
+  showHint() {
+    // this.createRandomBaseArray();
+    if (this.hints > 0) {
+      const [cell] = this.createRandomFixedCells(1);
+      if (cell.isStateFixed()) {
+        this.showHint();
+        console.log("re try");
+        return;
+      }
+      cell.stateFixed();
+      this.hints -= 1;
+      this.renderer.updateHint();
+    }
+  }
+
+  /* 히스토리 추가 및 초기화 */
   addHistory() {
     if (this.currentHistory !== null) {
       this.currentHistory.playTime = this.timer;
@@ -61,6 +79,7 @@ export default class Sudoku {
     this.currentHistory = new History();
   }
 
+  /* 숫자 패드 남은 갯수 산정 */
   calculateEachValueAmount() {
     const inputs = this.inputManager.inputs.slice(1);
     this.inputManager.clearCount();
@@ -71,6 +90,7 @@ export default class Sudoku {
     });
   }
 
+  /* 게임 종료(완료)인지 판별 */
   isGameClear() {
     const inputs = this.inputManager.inputs.slice(1);
     let isAllSuccess = inputs.length > 0;
@@ -83,10 +103,12 @@ export default class Sudoku {
     return isAllSuccess;
   }
 
+  /* 게임 패배인지 판별 */
   isGameFail() {
     return this.tryAmount >= this.tryLimit;
   }
 
+  /* 게임 승리 판별 및 재시작 로직 */
   checkGameClear() {
     let isAllSuccess = this.isGameClear();
 
@@ -100,6 +122,7 @@ export default class Sudoku {
     }
   }
 
+  /* 레벨 재설정 및 재시작 */
   levelChangeAndRestartGame() {
     let isOut = false;
     while (true) {
@@ -119,8 +142,7 @@ export default class Sudoku {
         case "0":
         case "1":
         case "2":
-        case "3":
-        case "4": {
+        case "3": {
           if (this.level === +level) {
             alert("같은 레벨로 진행합니다!");
           } else {
@@ -148,6 +170,7 @@ export default class Sudoku {
     this.restartGame();
   }
 
+  /* 게임 재시작 */
   restartGame() {
     this.init();
     this.running();
@@ -177,7 +200,7 @@ export default class Sudoku {
   }
 
   /* 랜덤 베이스 맵을 생성할 때 사용하며, 인자로 전달 */
-  createRandomBaseArray() {
+  private createRandomBaseArray() {
     const temp: number[] = [];
     let seed = 6;
 
@@ -194,7 +217,12 @@ export default class Sudoku {
   }
 
   /* seedNumber를 시작으로 오름차순한 맵 생성 */
-  createStraightOrderMap(seedNumber?: number) {
+  /**
+   * @deprecated
+   * @param {number} seedNumber 시작 숫자
+   * @returns 시작 숫자를 기반으로 생성된 숫자 배열
+   */
+  private createStraightOrderMap(seedNumber?: number) {
     const temp = [];
     const { x, y } = this.sizes;
     let startValue = seedNumber || 0;
@@ -214,7 +242,7 @@ export default class Sudoku {
   }
 
   /* 랜덤 베이스를 기준으로 맵 생성 */
-  createRandomBaseOrderMap(randomBase: number[]) {
+  private createRandomBaseOrderMap(randomBase: number[]) {
     // const randomBase = [8, 4, 6, 2, 1, 3, 5, 7, 0];
     const temp = [];
     const { x, y } = this.sizes;
@@ -233,14 +261,16 @@ export default class Sudoku {
     return temp;
   }
 
-  createMap() {
+  /* 게임 맵 생성 */
+  private createMap() {
     this.calculateEachValueAmount();
-
+    const baseDiffLevel = 5;
     const cellAmount = this.sizes.x * this.sizes.y;
-    const levelRatio = 1 - this.level / this.maxLevel;
+    const levelRatio = 1 - this.level / baseDiffLevel;
     const levelFixedAmount =
       // if change 5, decrease minimum guess cell
-      Math.floor(cellAmount * levelRatio) + (this.level - this.maxLevel) * 5;
+      Math.floor(cellAmount * levelRatio) +
+      (this.level - baseDiffLevel) * baseDiffLevel;
     // this.boards = this.createStraightOrderMap(2);
     this.boards = this.createRandomBaseOrderMap(this.createRandomBaseArray());
     // this.boards = this.createRandomBaseOrderMap();
@@ -252,7 +282,11 @@ export default class Sudoku {
     }
   }
 
-  randomMap() {
+  /* 랜덤 맵 생성 */
+  /**
+   * @deprecated
+   */
+  createRandomMap() {
     const { x, y } = this.sizes;
     for (let row = 0; row < y; row++) {
       const rows = [];
@@ -266,7 +300,7 @@ export default class Sudoku {
   }
 
   /* sudoku tools about game state */
-  init() {
+  private init() {
     this.renderer.destroy();
     this.state = GameState.Init;
     this.boards = [];
@@ -282,6 +316,7 @@ export default class Sudoku {
     this.inputManager.memoMode = false;
     this.addHistory();
     this.timer = 0;
+    this.renderer.updateHint();
   }
 
   /**
@@ -296,9 +331,15 @@ export default class Sudoku {
    * sudoku.setLevel(5); // 전문가
    */
   setLevel(level: number) {
-    this.level = level;
+    this.level =
+      level > this.maxLevel
+        ? this.maxLevel
+        : level < this.minLevel
+        ? this.minLevel
+        : level;
   }
 
+  /* 초기 게임 엔진 시작 */
   run() {
     this.init();
     this.running();
@@ -307,6 +348,8 @@ export default class Sudoku {
     this.renderer.render();
     this.renderer.renderInputs();
   }
+
+  /* pause toggle */
   resumeOrpause() {
     if (this.state === GameState.Hold) {
       this.running();
@@ -321,19 +364,20 @@ export default class Sudoku {
   }
 
   /* state */
-  running() {
+  private running() {
     this.state = GameState.Running;
     this.inputManager.activeValue = 1;
   }
-  hold() {
+  private hold() {
     this.state = GameState.Hold;
     this.inputManager.activeValue = 0;
   }
-  end() {
+  private end() {
     this.state = GameState.End;
   }
 
-  showHistory() {
+  /* renderer로 히스토리 보기 */
+  private showHistory() {
     if (this.currentHistory) {
       this.renderer.renderEndHistory(this.currentHistory);
     }
@@ -350,7 +394,7 @@ export default class Sudoku {
     return this.state === GameState.End;
   }
 
-  /* sudoku tools about cell */
+  /* 셀 선택 툴 */
   selectOne(x: number, y: number) {
     const cell = this.boards?.[y]?.[x];
     return cell;
@@ -383,7 +427,7 @@ export default class Sudoku {
     return temp;
   }
 
-  /* sudoku tools about matched */
+  /* 영역 통과인지 판별 */
   isCorrect(area: Cell[]) {
     const areaList = area.map((cell) => cell.guessValue).filter((_) => _ !== 0);
     let isDuplicated = false;
@@ -399,7 +443,7 @@ export default class Sudoku {
 
     return !isDuplicated;
   }
-  isFill(area: Cell[]) {
+  private isFill(area: Cell[]) {
     const fillArray = new Array(this.sizes.x).fill(false);
     area.forEach((cell) => {
       fillArray[cell.guessValue - 1] = true;
@@ -434,7 +478,7 @@ export default class Sudoku {
     };
   }
 
-  /* try amount control */
+  /* 시도 횟수 카운팅 */
   tryFailCount() {
     this.tryAmount += 1;
     if (this.isGameFail()) {
@@ -450,6 +494,10 @@ export default class Sudoku {
     }
   }
 
+  /* 사용자 입력 셀 통과 여부 초기화 */
+  /**
+   * @deprecated
+   */
   clearGuessPassed() {
     for (const cell of this.boards.flat(1)) {
       const { isCorrect } = this.guessByCell(cell);

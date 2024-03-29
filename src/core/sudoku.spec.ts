@@ -13,7 +13,7 @@ describe("[스도쿠 엔진 테스트]", () => {
   });
   /* 각 테스트마다 스도쿠 엔진 초기화 */
   afterEach(() => {
-    sudoku.init();
+    sudoku.run();
     expect(sudoku.state).toStrictEqual("init");
   });
 
@@ -28,13 +28,13 @@ describe("[스도쿠 엔진 테스트]", () => {
   });
 
   it("[스도쿠 엔진: 맵 생성] success", () => {
-    sudoku.createMap();
+    sudoku.run();
     expect(sudoku.boards.length).toStrictEqual(9);
     expect(sudoku.boards[0].length).toStrictEqual(9);
   });
 
   it("[스도쿠 엔진: 셀 선택] success", () => {
-    sudoku.createMap();
+    sudoku.run();
 
     const selectOneSpy = jest.spyOn(sudoku, "selectOne");
 
@@ -49,7 +49,7 @@ describe("[스도쿠 엔진 테스트]", () => {
   });
 
   it("[스도쿠 엔진: 셀 열 선택] success", () => {
-    sudoku.createMap();
+    sudoku.run();
 
     const selectColumnSpy = jest.spyOn(sudoku, "selectColumn");
 
