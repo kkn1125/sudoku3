@@ -7,4 +7,17 @@ const grade = {
   "5": "전문가",
 };
 
-export { grade };
+const format = (time: number) => {
+  const hour = Math.floor((time / 60 / 60) % 60)
+    .toString()
+    .padStart(2, "0");
+  const minute = Math.floor((time / 60) % 60)
+    .toString()
+    .padStart(2, "0");
+  const second = Math.floor(time % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${hour}:${minute}:${second}`;
+};
+
+export { grade, format };

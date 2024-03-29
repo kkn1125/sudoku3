@@ -8,6 +8,17 @@
     <title>Sudoku</title>
   </head>
   <body>
+    <div id="header">
+      <button id="game-level" class="menu-btn" title="game level"></button>
+      <button
+        id="game-state"
+        class="menu-btn"
+        data-value="running"
+        title="game state"
+      ></button>
+      <button id="game-restart" class="menu-btn" title="game restart"></button>
+    </div>
+    <div id="page"></div>
     <canvas id="app"></canvas>
     <div id="inputs"></div>
     <script type="module" src="/src/main.ts"></script>

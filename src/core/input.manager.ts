@@ -8,7 +8,10 @@ export default class InputManager {
   resetQueue: Cell[] = [];
   memoMode: boolean = false;
 
+  activeValue: number = 0;
+
   constructor(sudoku: Sudoku) {
+    this.activeValue = 1;
     this.parent = sudoku;
     this.memoCell = new Cell(10, -1, -1);
     this.memoCell.typeMemo();
@@ -46,7 +49,8 @@ export default class InputManager {
       (e.clientX - canvasX + boardX) / this.parent.renderer.size
     );
     const poy = Math.floor(
-      (e.clientY - canvasY + boardY) / this.parent.renderer.size
+      (e.clientY - canvasY + boardY - this.parent.offsetTopPx) /
+        this.parent.renderer.size
     );
     return { x: pox, y: poy };
   }
@@ -62,20 +66,25 @@ export default class InputManager {
 
   /* handlers */
   handleKeydown(e: KeyboardEvent) {
+    if (this.activeValue === 0 || !this.parent.isStateRun()) return;
     const key = e.key.toLowerCase();
 
     if (this.parent.isGameClear() || this.parent.isGameFail()) {
       return;
     }
 
-    if (this.parent.selected) {
+    if (this.parent.selected && this.parent.selected.isStateGuessed()) {
       if (key === "backspace") {
         if (this.memoMode) {
           this.parent.selected.removeGuessValue();
           this.parent.selected.removeAllMemo();
+          this.validateGuessValue(this.parent.selected);
+          this.parent.selected = null;
         } else {
           this.parent.selected.removeGuessValue();
           this.parent.selected.removeAllMemo();
+          this.validateGuessValue(this.parent.selected);
+          this.parent.selected = null;
         }
         this.calculateAndRerenderInputs();
       } else if (key.match(/^[1-9]$/)) {
@@ -95,6 +104,8 @@ export default class InputManager {
             this.parent.selected.replaceGuessValue(+key);
             this.parent.selected.removeAllMemo();
             this.calculateAndRerenderInputs();
+            this.validateGuessValue(this.parent.selected);
+            this.parent.selected = null;
             // console.log("key down cell", cell);
           }
         }
@@ -106,6 +117,8 @@ export default class InputManager {
           this.calculateAndRerenderInputs();
           // const cell = this.inputs.find((input) => input.guessValue === +key);
           // console.log("key down cell", cell);
+          this.validateGuessValue(this.parent.selected);
+          this.parent.selected = null;
         } else {
           // not memo mode!
           this.parent.selected.removeGuessValue();
@@ -113,14 +126,15 @@ export default class InputManager {
           this.calculateAndRerenderInputs();
           // const cell = this.inputs.find((input) => input.guessValue === +key);
           // console.log("key down cell", cell);
+          this.validateGuessValue(this.parent.selected);
+          this.parent.selected = null;
         }
       }
-      this.validateGuessValue(this.parent.selected);
     }
-    this.parent.selected = null;
   }
 
   handlePointer(e: MouseEvent) {
+    if (this.activeValue === 0 || !this.parent.isStateRun()) return;
     const pos = this.getPos(e);
     this.parent.renderer.pointer = pos;
   }
@@ -132,6 +146,17 @@ export default class InputManager {
     if (this.parent.isGameClear() || this.parent.isGameFail()) {
       return;
     }
+
+    if (target.id === "game-level") {
+      this.parent.levelChangeAndRestartGame();
+      return;
+    }
+    if (target.id === "game-state") {
+      this.parent.resumeOrpause();
+      return;
+    }
+
+    if (this.activeValue === 0 || !this.parent.isStateRun()) return;
 
     if (
       target.tagName !== "button" &&
@@ -211,6 +236,12 @@ export default class InputManager {
     const { isCorrect, row, isRowFill, column, isColumnFill, box, isBoxFill } =
       this.parent.guessByCell(cell);
     if (isCorrect) {
+      if (this.parent.currentHistory) {
+        if (this.parent.currentHistory.firstCorrectTime === 0) {
+          this.parent.currentHistory.firstCorrectTime = this.parent.timer;
+        }
+      }
+
       /* 열, 행, 영역 맞으면 */
       // 해당 셀 guess pass 처리
       cell.guessValuePassed();
@@ -251,6 +282,11 @@ export default class InputManager {
       /* 다른 영역과 충돌된다면 */
       // 입력 셀 not guess pass 처리
       if (!this.memoMode) {
+        if (this.parent.currentHistory) {
+          if (this.parent.currentHistory.firstFailureTime === 0) {
+            this.parent.currentHistory.firstFailureTime = this.parent.timer;
+          }
+        }
         console.warn("[not correct]");
         cell.guessValueNotPassed();
         // 엔진에 실패 횟수 카운트

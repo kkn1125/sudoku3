@@ -14,6 +14,14 @@
   -o-border-radius: $args;
 }
 
+@mixin transition($args...) {
+  transition: $args;
+  -webkit-transition: $args;
+  -moz-transition: $args;
+  -ms-transition: $args;
+  -o-transition: $args;
+}
+
 html,
 body {
   height: 100%;
@@ -23,15 +31,191 @@ body {
 
 body {
   background-color: #eaeaea;
+  user-select: none;
+  #page {
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #56565656;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    &[data-hidden="false"] {
+      width: 100%;
+      &::before {
+        position: absolute;
+        content: "pause";
+        top: calc(2.5vh + 10%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: white;
+        -webkit-text-stroke: 3px black;
+        width: 95%;
+        height: calc(1rem * 9 + 50px * 9);
+        max-width: 600px;
+        max-height: 130vw;
+        background-color: #56565656;
+        backdrop-filter: blur(5px);
+        @include radius(1rem);
+      }
+    }
+    &[data-hidden="true"] {
+      width: 0vw;
+    }
+  }
+  #header {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 8px 0;
+
+    .menu-btn {
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-size: 1.5rem;
+      padding: 0;
+      width: 50px;
+      height: 50px;
+      &:hover {
+        background-color: #ffffff56;
+      }
+      &:active {
+        background-color: #ffffff26;
+      }
+    }
+    #game-state {
+      &[data-value="hold"] {
+        &::before {
+          content: "▶️";
+        }
+      }
+      &[data-value="running"] {
+        &::before {
+          content: "⏸️";
+        }
+      }
+    }
+    #game-restart {
+      &::before {
+        content: "🔄️";
+      }
+    }
+    #game-level {
+      &::before {
+        content: "Lv.";
+        font-weight: 700;
+        -webkit-text-stroke: 1px black;
+        color: white;
+      }
+    }
+  }
+
   #inputs {
     position: absolute;
-    width: 70%;
+    width: 80%;
     flex-wrap: wrap;
-    bottom: 10%;
+    bottom: 5%;
     left: 50%;
     display: flex;
     justify-content: center;
     gap: 0.5rem;
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 399px) {
+      width: 80%;
+      gap: 0.5rem;
+      .btn-group {
+        gap: 0.5rem;
+        button {
+          font-size: 1.8rem;
+          width: 3rem;
+          height: 3rem;
+        }
+      }
+    }
+    @media (min-width: 400px) and (max-width: 430px) {
+      width: 40%;
+      gap: 1rem;
+      bottom: 8%;
+      .btn-group {
+        gap: 1rem;
+        button {
+          font-size: 1.8rem;
+          width: 3.2rem;
+          height: 3.2rem;
+        }
+      }
+    }
+    @media (min-width: 431px) and (max-width: 539px) {
+      width: 40%;
+      .btn-group {
+        button {
+          font-size: 1.8rem;
+          width: 3.5rem;
+          height: 3.5rem;
+        }
+      }
+    }
+    @media (min-width: 540px) and (max-width: 567px) {
+      width: 60%;
+      .btn-group {
+        button {
+          font-size: 1.6rem;
+          width: 3.5rem;
+          height: 3.5rem;
+        }
+      }
+    }
+    @media (min-width: 568px) and (max-width: 767px) {
+      width: 80%;
+      .btn-group {
+        button {
+          font-size: 1.7rem;
+          width: 4rem;
+          height: 4rem;
+        }
+      }
+    }
+    @media (min-width: 768px) {
+      width: 80%;
+      gap: 1.5rem;
+      .btn-group {
+        gap: 1.5rem;
+        button {
+          font-size: 30px;
+          width: 60px;
+          height: 60px;
+        }
+      }
+    }
+    @media (min-height: 600px) and (min-width: 1024px) {
+      .btn-group {
+        button {
+          font-size: 2rem;
+          width: 3.5rem;
+          height: 3.5rem;
+        }
+      }
+    }
 
     button {
       $neumorphism: -5px -5px 8px 0 #ffffff, 5px 5px 8px 0 #656565;
@@ -58,11 +242,10 @@ body {
       background-color: #bababa;
 
       font-weight: 700;
-      font-size: 1rem;
       color: white;
-      // padding: 0.5rem 0.7rem;
-      width: 50px;
-      height: 50px;
+      font-size: 1rem;
+      width: 35px;
+      height: 35px;
 
       &.memomode {
         background-color: #20a071;

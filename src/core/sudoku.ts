@@ -1,5 +1,6 @@
 import Cell from "../modules/cell";
 import { grade } from "../utils/global";
+import History from "./history";
 import InputManager from "./input.manager";
 import Renderer from "./renderer";
 
@@ -10,14 +11,16 @@ export interface SudokuBoardSize {
 
 const GameState = {
   Running: "running",
-  Pause: "pause",
+  Hold: "hold",
   Init: "init",
   End: "end",
 } as const;
 type GameState = (typeof GameState)[keyof typeof GameState];
 
 export default class Sudoku {
-  offsetTop: number = 0.25;
+  offsetTop: number = 0.1;
+  offsetTopPx: number = 110;
+
   /* cell storages */
   selected: Cell | null = null;
   wrongCell: Cell | null = null;
@@ -35,6 +38,11 @@ export default class Sudoku {
   maxLevel: number = 5;
   hints: number = 5;
 
+  timer: number = 0;
+
+  histories: History[] = [];
+  currentHistory: History | null = null;
+
   /* modules */
   inputManager: InputManager;
   renderer: Renderer;
@@ -42,6 +50,15 @@ export default class Sudoku {
   constructor() {
     this.inputManager = new InputManager(this);
     this.renderer = new Renderer(this);
+  }
+
+  addHistory() {
+    if (this.currentHistory !== null) {
+      this.currentHistory.playTime = this.timer;
+      this.currentHistory.score = 0;
+      this.histories.push(this.currentHistory);
+    }
+    this.currentHistory = new History();
   }
 
   calculateEachValueAmount() {
@@ -63,13 +80,6 @@ export default class Sudoku {
         break;
       }
     }
-    // console.log(
-    //   "isAllSuccess",
-    //   isAllSuccess,
-    //   inputs,
-    //   inputs.every((i) => i.current === 0),
-    //   inputs.map((i) => i.current)
-    // );
     return isAllSuccess;
   }
 
@@ -81,56 +91,70 @@ export default class Sudoku {
     let isAllSuccess = this.isGameClear();
 
     if (isAllSuccess) {
+      this.end();
       setTimeout(() => {
         alert("게임에서 승리했습니다!");
-        let isOut = false;
-        while (true) {
-          const level = prompt(
-            `난이도를 변경하시겠습니까? 현재 난이도는 ${
-              grade[this.level as 1 | 2 | 3 | 4 | 5]
-            }입니다.
-            난이도는 다음과 같습니다.
-            
-            0 - 처음하는 사람
-            1 - 초급자
-            2 - 중급자
-            3 - 고급자
-            4 - 숙련자
-            5 - 전문가
-            `
-          );
-          switch (level) {
-            case "0":
-            case "1":
-            case "2":
-            case "3":
-            case "4":
-            case "5": {
-              if (this.level === +level) {
-                alert("같은 레벨로 진행합니다!");
-              } else {
-                alert(`${grade[level]} 단계로 진행합니다!`);
-              }
-              this.level = +level;
-              isOut = true;
-              break;
-            }
-            default: {
-              alert("정해진 난이도를 선택해주세요.");
-              break;
-            }
-          }
-          if (isOut) {
-            break;
-          }
-        }
-        this.init();
-        this.createMap();
-        this.calculateEachValueAmount();
-        this.renderer.renderInputs();
-        this.renderer.render();
+        this.showHistory();
+        this.levelChangeAndRestartGame();
       }, 1000);
     }
+  }
+
+  levelChangeAndRestartGame() {
+    let isOut = false;
+    while (true) {
+      const level = prompt(
+        `난이도를 변경하시겠습니까? 현재 난이도는 ${
+          grade[this.level as 1 | 2 | 3]
+        }입니다.
+난이도는 다음과 같습니다.
+
+0 - 처음하는 사람
+1 - 초급자
+2 - 중급자
+3 - 고급자
+`.trim()
+      );
+      switch (level) {
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4": {
+          if (this.level === +level) {
+            alert("같은 레벨로 진행합니다!");
+          } else {
+            alert(`${grade[level]} 단계로 진행합니다!`);
+          }
+          this.level = +level;
+          isOut = true;
+          break;
+        }
+        case null: {
+          isOut = true;
+          break;
+        }
+        default: {
+          alert(
+            "정해진 난이도를 선택해주세요. 취소를 누르시면 다시 게임으로 돌아갑니다."
+          );
+          break;
+        }
+      }
+      if (isOut) {
+        break;
+      }
+    }
+    this.restartGame();
+  }
+
+  restartGame() {
+    this.init();
+    this.running();
+    this.createMap();
+    this.calculateEachValueAmount();
+    this.renderer.renderInputs();
+    this.renderer.render();
   }
 
   /* sudoku tools about map generate */
@@ -256,6 +280,8 @@ export default class Sudoku {
     this.tryAmount = 0;
     this.hints = 5;
     this.inputManager.memoMode = false;
+    this.addHistory();
+    this.timer = 0;
   }
 
   /**
@@ -274,18 +300,54 @@ export default class Sudoku {
   }
 
   run() {
-    this.state = GameState.Running;
+    this.init();
+    this.running();
     this.createMap();
     this.calculateEachValueAmount();
     this.renderer.render();
     this.renderer.renderInputs();
   }
+  resumeOrpause() {
+    if (this.state === GameState.Hold) {
+      this.running();
+    } else if (this.state === GameState.Running) {
+      if (this.currentHistory) {
+        this.currentHistory.pauseAmount += 1;
+      }
 
-  pause() {
-    this.state = GameState.Pause;
+      this.hold();
+    }
+    this.renderer.playButtonToggle(this.state);
+  }
+
+  /* state */
+  running() {
+    this.state = GameState.Running;
+    this.inputManager.activeValue = 1;
+  }
+  hold() {
+    this.state = GameState.Hold;
+    this.inputManager.activeValue = 0;
   }
   end() {
     this.state = GameState.End;
+  }
+
+  showHistory() {
+    if (this.currentHistory) {
+      this.renderer.renderEndHistory(this.currentHistory);
+    }
+  }
+
+  /* check state */
+  isStateRun() {
+    return this.state === GameState.Running;
+  }
+  isStateHold() {
+    return this.state === GameState.Hold;
+  }
+  isStateEnd() {
+    return this.state === GameState.End;
   }
 
   /* sudoku tools about cell */
@@ -309,8 +371,6 @@ export default class Sudoku {
   selectBox(x: number, y: number) {
     const blockX = Math.floor(x / 3) * 3;
     const blockY = Math.floor(y / 3) * 3;
-    // console.log("block x:", blockX);
-    // console.log("block y:", blockY);
     const temp = [];
     for (let row = blockY; row < blockY + 3; row++) {
       for (let col = blockX; col < blockX + 3; col++) {
@@ -320,7 +380,6 @@ export default class Sudoku {
         }
       }
     }
-    // console.log(blockX + "," + blockY + " :", temp);
     return temp;
   }
 
@@ -328,7 +387,6 @@ export default class Sudoku {
   isCorrect(area: Cell[]) {
     const areaList = area.map((cell) => cell.guessValue).filter((_) => _ !== 0);
     let isDuplicated = false;
-    // console.log("areaList", areaList, area);
     for (const cell of area) {
       const isMatched =
         areaList.indexOf(cell.guessValue) ===
@@ -352,12 +410,6 @@ export default class Sudoku {
     const row = this.selectRow(cell.y);
     const column = this.selectColumn(cell.x);
     const box = this.selectBox(cell.x, cell.y);
-
-    // console.log(cell.x, cell.y);
-
-    // console.log("row", row);
-    // console.log("column", column);
-    // console.log("box", box);
 
     const isCorrectRow = this.isCorrect(row);
     const isCorrectColumn = this.isCorrect(column);
@@ -387,13 +439,11 @@ export default class Sudoku {
     this.tryAmount += 1;
     if (this.isGameFail()) {
       console.warn("game over!");
+      this.end();
       setTimeout(() => {
-        alert("모든 기회를 소진했습니다!");
-        this.init();
-        this.createMap();
-        this.calculateEachValueAmount();
-        this.renderer.renderInputs();
-        this.renderer.render();
+        alert("게임에서 졌습니다!");
+        this.showHistory();
+        this.levelChangeAndRestartGame();
       }, 500);
       // TODO: 게임 리셋
       return;

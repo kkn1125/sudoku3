@@ -10,8 +10,15 @@ const query = Object.fromEntries(
 );
 
 const sudoku = new Sudoku();
-
-sudoku.setLevel(query.level > 5 ? 5 : query.level < 0 ? 0 : query.level);
+const maxLevel = 3;
+const minLevel = 0;
+sudoku.setLevel(
+  query.level > maxLevel
+    ? maxLevel
+    : query.level < minLevel
+    ? minLevel
+    : query.level
+);
 
 sudoku.run();
 

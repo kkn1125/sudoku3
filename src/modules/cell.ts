@@ -18,7 +18,7 @@ export default class Cell {
   id: string;
   x: number;
   y: number;
-  memo: Set<number>;
+  memo: number[];
   originValue: number;
   guessValue: number;
   state: CellState = CellState.Guessed; // 셀 상태
@@ -43,7 +43,7 @@ export default class Cell {
     this.id = "cell-" + v4();
     this.x = x;
     this.y = y;
-    this.memo = new Set();
+    this.memo = [];
     this.originValue = value || 0;
     this.guessValue = 0;
     this.stateGuessed();
@@ -115,18 +115,18 @@ export default class Cell {
   }
 
   addMemo(value: number) {
-    if (this.memo.has(value)) {
+    if (this.memo.includes(value)) {
       this.removeMemo(value);
     } else {
-      this.memo.add(value);
+      this.memo.push(value);
     }
   }
 
   private removeMemo(value: number) {
-    this.memo.delete(value);
+    this.memo.splice(this.memo.indexOf(value), 1);
   }
   removeAllMemo() {
-    this.memo.clear();
+    this.memo = [];
   }
 
   /* read value */
@@ -149,11 +149,11 @@ export default class Cell {
     }
   }
   readMemo() {
-    return [...this.memo].toSorted((a, b) => a - b);
+    return this.memo.toSorted((a, b) => a - b);
   }
 
   hasMemoBy(value: number) {
-    return this.memo.has(value);
+    return this.memo.includes(value);
   }
 
   success() {

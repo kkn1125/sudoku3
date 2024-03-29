@@ -1,5 +1,6 @@
 import Cell from "../modules/cell";
-import { grade } from "../utils/global";
+import { format, grade } from "../utils/global";
+import History from "./history";
 import Sudoku from "./sudoku";
 
 const Palette = {
@@ -21,6 +22,29 @@ const Palette = {
 type Palette = (typeof Palette)[keyof typeof Palette];
 
 export default class Renderer {
+  renderEndHistory(history: History) {
+    const playTime = "- Play Time:" + "\n" + format(history.playTime);
+    const firstCorrectTime =
+      "- First Correct Time:" + "\n" + format(history.firstCorrectTime);
+    const firstFailureTime =
+      "- First Failure Time:" + "\n" + format(history.firstFailureTime);
+    const pauseAmount = "- Pause Amount:" + "\n" + history.pauseAmount;
+    alert(
+      `# Sudoku Result!\n\n\n${playTime}\n\n${firstCorrectTime}\n\n${firstFailureTime}\n\n${pauseAmount}`
+    );
+  }
+  playButtonToggle(state: string) {
+    console.log(state);
+    const stateEl = document.querySelector("#game-state") as HTMLButtonElement;
+    const pageEl = document.querySelector("#page") as HTMLDivElement;
+    if (state === "running") {
+      stateEl.dataset.value = "running";
+      pageEl.dataset.hidden = "true";
+    } else if (state === "hold") {
+      stateEl.dataset.value = "hold";
+      pageEl.dataset.hidden = "false";
+    }
+  }
   parent: Sudoku;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -33,7 +57,7 @@ export default class Renderer {
 
   timeoutQueue: [number, Function][] = [];
 
-  active: number = 0;
+  activeValue: number = 0;
 
   constructor(sudoku: Sudoku) {
     const CANVAS = document.querySelector("#app") as HTMLCanvasElement;
@@ -48,7 +72,7 @@ export default class Renderer {
   destroy() {
     this.pointer = { x: -1, y: -1 };
     this.selected = { x: -1, y: -1 };
-    cancelAnimationFrame(this.active);
+    cancelAnimationFrame(this.activeValue);
   }
 
   getGlobalSize() {
@@ -73,6 +97,9 @@ export default class Renderer {
   maxOr(mediaSize: number) {
     return innerWidth < mediaSize;
   }
+  minOr(mediaSize: number) {
+    return mediaSize <= innerWidth;
+  }
   minAndMax(minMediaSize: number, maxMediaSize: number) {
     return minMediaSize <= innerWidth && innerWidth < maxMediaSize;
   }
@@ -81,8 +108,13 @@ export default class Renderer {
     this.canvas.width = innerWidth;
     this.canvas.height = innerHeight;
 
-    if (this.minAndMax(1024, 1268)) {
-      this.size = 50;
+    const ratio = innerHeight / innerWidth;
+    // this.parent.offsetTopPx = 100 * ratio;
+    if (this.minOr(1268)) {
+      this.size = 50 * 1.2;
+      this.inputPlace = "right";
+    } else if (this.minAndMax(1024, 1268)) {
+      this.size = (50 / ratio) * 0.7;
       this.inputPlace = "right";
     } else if (this.minAndMax(768, 1024)) {
       this.size = 46;
@@ -106,7 +138,7 @@ export default class Renderer {
     const { centerX, centerY, boardX, boardY } = this.getGlobalSize();
     const { x, y } = cell;
     const pox = x * this.size + centerX - boardX;
-    const poy = y * this.size + centerY - boardY;
+    const poy = y * this.size + centerY - boardY + this.parent.offsetTopPx;
 
     const value = cell.readGuessValue();
     const memos = cell.readMemo();
@@ -190,13 +222,20 @@ export default class Renderer {
     }
   }
 
-  splitBy(array: number[], value: number) {
+  splitBy<T>(array: T[], value: number) {
     const temp = [];
     for (let i = 1; i <= value; i++) {
       const sliced = array.slice((i - 1) * value, i * value);
       temp.push(sliced);
     }
     return temp;
+  }
+
+  createButtonGroup(...els: HTMLButtonElement[]) {
+    const group = document.createElement("div");
+    group.classList.add("btn-group");
+    group.append(...els);
+    return group;
   }
 
   renderInputs() {
@@ -210,12 +249,20 @@ export default class Renderer {
     } else {
       memoEl.classList.remove("memomode");
     }
-    inputs.append(memoEl);
 
-    for (const cellInput of this.parent.inputManager.inputs) {
-      const cell = this.convertButtonEl(cellInput);
-      inputs.append(cell);
-    }
+    // 로직 수정
+    const removeEl = this.convertButtonEl(this.parent.inputManager.inputs[0]);
+    inputs.append(this.createButtonGroup(memoEl, removeEl));
+
+    this.splitBy(
+      this.parent.inputManager.inputs
+        .slice(1)
+        .map((input) => this.convertButtonEl(input)),
+      3
+    ).forEach((group) => {
+      inputs.append(this.createButtonGroup(...group));
+    });
+
     body.append(inputs);
   }
 
@@ -255,7 +302,8 @@ export default class Renderer {
           : 10 * this.size +
             centerY -
             boardY +
-            Math.floor(cellInput.y / 6) * this.size;
+            Math.floor(cellInput.y / 6) * this.size +
+            this.parent.offsetTopPx;
       const value =
         "" + (cellInput.guessValue === 0 ? "X" : cellInput.guessValue);
       this.ctx.font = "bold 16px san-serif";
@@ -275,7 +323,10 @@ export default class Renderer {
       this.ctx.fillText(
         value,
         pox + this.size / 2,
-        poy + this.size / 2 + actualBoundingBoxAscent / 2
+        poy +
+          this.size / 2 +
+          actualBoundingBoxAscent / 2 +
+          this.parent.offsetTopPx
       );
     }
   }
@@ -283,32 +334,33 @@ export default class Renderer {
   drawGuideline(pointer: { x: number; y: number }, color: Palette) {
     const { centerX, centerY, boardX, boardY } = this.getGlobalSize();
     const cPox = (_x: number) => _x * this.size + centerX - boardX;
-    const cPoy = (_y: number) => _y * this.size + centerY - boardY;
+    const cPoy = (_y: number) =>
+      _y * this.size + centerY - boardY + this.parent.offsetTopPx;
 
     /* horizon highlight */
     this.ctx.fillStyle = color;
     this.ctx.fillRect(
-      centerX - boardX,
-      pointer.y * this.size + centerY - boardY,
+      cPox(0),
+      cPoy(pointer.y),
       this.size * pointer.x,
       this.size
     );
     this.ctx.fillRect(
       (pointer.x + 1) * this.size + centerX - boardX,
-      pointer.y * this.size + centerY - boardY,
+      cPoy(pointer.y),
       this.size * (this.parent.sizes.x - (pointer.x + 1)),
       this.size
     );
     /* vertical highlight */
     this.ctx.fillRect(
-      pointer.x * this.size + centerX - boardX,
-      centerY - boardY,
+      cPox(pointer.x),
+      cPoy(0),
       this.size,
       this.size * pointer.y
     );
     this.ctx.fillRect(
-      pointer.x * this.size + centerX - boardX,
-      (pointer.y + 1) * this.size + centerY - boardY,
+      cPox(pointer.x),
+      cPoy(pointer.y + 1),
       this.size,
       this.size * (this.parent.sizes.y - (pointer.y + 1))
     );
@@ -324,7 +376,8 @@ export default class Renderer {
   drawBoxBorder() {
     const { centerX, centerY, boardX, boardY } = this.getGlobalSize();
     const borderX = (block: number) => block * 3 * this.size + centerX - boardX;
-    const borderY = (block: number) => block * 3 * this.size + centerY - boardY;
+    const borderY = (block: number) =>
+      block * 3 * this.size + centerY - boardY + this.parent.offsetTopPx;
 
     this.ctx.save();
 
@@ -347,25 +400,34 @@ export default class Renderer {
   drawTryInformation() {
     const { centerX, centerY, boardX, boardY } = this.getGlobalSize();
     const borderX = (block: number) => block * 3 * this.size + centerX - boardX;
-    const borderY = (block: number) => block * 3 * this.size + centerY - boardY;
+    const borderY = (block: number) =>
+      block * 3 * this.size + centerY - boardY + this.parent.offsetTopPx;
 
     this.ctx.fillStyle = Palette.DefaultText;
     this.ctx.fillText(
-      `Lv.${this.parent.level} [ ${
-        grade[this.parent.level as 1 | 2 | 3 | 4 | 5]
-      } ] (${this.parent.tryAmount} / ${this.parent.tryLimit})`,
+      `⏱️ ${format(this.parent.timer)}`,
+      borderX(1.5),
+      borderY(-0.2) - 25
+    );
+    this.ctx.fillText(
+      `Lv.${this.parent.level} [ ${grade[this.parent.level as 1 | 2 | 3]} ] (${
+        this.parent.tryAmount
+      } / ${this.parent.tryLimit})`,
       borderX(1.5),
       borderY(-0.2)
     );
   }
 
   renderCanvas(time: number) {
-    this.active = requestAnimationFrame(this.renderCanvas.bind(this));
+    this.activeValue = requestAnimationFrame(this.renderCanvas.bind(this));
 
     time = Math.floor(time * 0.001);
 
     if (time !== this.beforeTime) {
       // if you want
+      if (this.parent.isStateRun()) {
+        this.parent.timer += 1;
+      }
     }
 
     if (this.parent.inputManager.resetQueue.length > 0) {
@@ -407,6 +469,6 @@ export default class Renderer {
 
   render() {
     this.parent.wrongCell = null;
-    this.active = requestAnimationFrame(this.renderCanvas.bind(this));
+    this.activeValue = requestAnimationFrame(this.renderCanvas.bind(this));
   }
 }
